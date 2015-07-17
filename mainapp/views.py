@@ -340,7 +340,7 @@ def get_my_category_list(request):
             category = Categories.objects.get(id=i.category_id)
             tmp['category_name'] = category.name
             tmp['subcategory_name'] = category.subcategory
-            tmp['subcategory'] = category.id
+            tmp['id'] = category.id
             category_list.append(tmp)
         results['Message'] = category_list
     return JsonResponse(data=results)
@@ -363,3 +363,71 @@ def get_my_rank_by_category(request):
         ranking['category_id'] = Categories.objects.get(id=tmp.category_id).id
         results['Message'] = ranking
     return JsonResponse(data=results)
+
+@csrf_exempt
+def get_played_games_list(request):
+    results = {}
+    list = []
+    error = {}
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        for i in GameInfo.objects.filter(Q(user_id_1=request.user.id) | Q(user_id_2=request.user.id)):
+            opponent = User.objects.get(id=i.user_id_1)
+            if i.user_id_1 == request.user.id:
+                opponent = User.objects.get(id=i.user_id_2)
+            games_list = {}
+            games_list['opponent_name'] = opponent.first_name
+            games_list['game_status'] = i.game_status
+            games_list['opponent_level'] = Ranking.objects.get(user_id=opponent.id, category_id=i.category_id).rank
+            games_list['category'] = Categories.objects.get(id=i.category_id).name
+            games_list['game_info_id'] = i.id
+            list.append(games_list)
+        results['Message'] = list
+    return JsonResponse(data=results)
+
+
+@csrf_exempt
+def get_played_game_info(request):
+    results = {}
+    list = []
+    error = {}
+    game_info_id = request.GET['id']
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        gameInfo = GameInfo.objects.get(id=game_info_id)
+        game = Game.objects.get(id=gameInfo.game_id)
+        user1 = UserAnswerList.objects.get(id=game.user1_answer_id)
+        user2 = UserAnswerList.objects.get(id=game.user2_answer_id)
+        questions = []
+        questions.append(Questions.objects.get(id=game.question_id_1))
+        questions.append(Questions.objects.get(id=game.question_id_2))
+        questions.append(Questions.objects.get(id=game.question_id_3))
+        questions.append(Questions.objects.get(id=game.question_id_4))
+        questions.append(Questions.objects.get(id=game.question_id_5))
+        for i in range(0,5):
+            tmp = {}
+            tmp['number'] = i+1
+            tmp['question'] = questions[i].question_text
+            tmp['answer_1'] = questions[i].answer_1
+            tmp['answer_2'] = questions[i].answer_2
+            tmp['answer_3'] = questions[i].answer_3
+            tmp['answer_4'] = questions[i].answer_4
+            tmp['right_answer'] = questions[i].correct_answer
+            tmp['user1_answer'] = user1.user_answer_1
+            tmp['user1_point'] = user1.point_1
+            tmp['user2_answer'] = user2.user_answer_1
+            tmp['user2_point'] = user2.point_1
+            list.append(tmp)
+        results['Message'] = list
+    return JsonResponse(data=results)
+
+
+
+
+

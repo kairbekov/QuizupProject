@@ -37,7 +37,7 @@ class GameInfo(models.Model):
     user_id_1 = models.IntegerField()
     user_id_2 = models.IntegerField()
     game_id = models.IntegerField()
-    category_id = models.CharField(max_length=256)
+    category_id = models.IntegerField()
     game_status = models.CharField(max_length=256)
     point_1 = models.CharField(max_length=256)
     point_2 = models.CharField(max_length=256)
