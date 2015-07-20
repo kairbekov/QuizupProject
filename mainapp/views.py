@@ -107,7 +107,7 @@ def category_list(request):
         for i in Categories.objects.all():
             tmp = {}
             tmp['id'] = i.id
-            tmp['name'] = i.name
+            tmp['category'] = i.name
             tmp['subcategory'] = i.subcategory
             categroy_list.append(tmp)
         results['Categories'] = categroy_list
@@ -220,28 +220,41 @@ def add_to_pool(request):
     results = {}
     tmp = {}
     category_id = request.POST['category_id']
+    category_id = int(category_id)
     user_id = request.user.id
+    user2_id = -1
     tmp['Success'] = False
     tmp['Text'] = "Not correct"
     if request.user.is_authenticated() == 0:
         tmp['Text'] = "Please, login!"
-    if (category_id and user_id) is not None and request.user.is_authenticated():
+    if category_id is not None and request.user.is_authenticated():
         ranking = Ranking.objects.get(category_id=category_id, user_id=user_id)
         for i in Pool.objects.all():
-            if i['user_id']!=user_id and i['category_id']==category_id and abs(i['rank']-ranking.rank)>100:
-                user2_id = i['user_id']
+            if i.user_id!=user_id and i.category_id==category_id and abs(i.rank-ranking.rank)<100:
+                user2_id = i.user_id
                 break
-        if user2_id is not None:
-            pool = Pool.objects.get(user_id=user2_id, category_id=category_id)
-            pool.user2_id = user_id
-            pool.rank2_id = ranking.rank
-            pool.save()
+        if user2_id != -1:
+            #pool = Pool.objects.get(user_id=user2_id, category_id=category_id)
+            tmp['Opponent_id'] = user2_id
+            tmp['Text'] = "Your opponent id = "+str(user2_id)
+            user1_answer = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+            user2_answer = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+            user1_answer.save()
+            user2_answer.save()
+            game = Game(question_id_1=1, question_id_2=2, question_id_3=3, question_id_4=5, question_id_5=1, user1_answer_id=user1_answer.id, user2_answer_id=user2_answer.id)
+            game.save()
+            newGame = GameInfo(user_id_1=user_id, user_id_2=user2_id, category_id=category_id, game_status=1, point_1=0, point_2=0, game_id=game.id)
+            newGame.save()
+            tmp['Game_id'] = newGame.id
+            tmp['Opponent_name'] = User.objects.get(id=user2_id).first_name
+            tmp['Opponent_points'] = Ranking.objects.get(user_id=user2_id,category_id=category_id).rank
+            tmp['Success'] = True
         else:
             pool = Pool(category_id=category_id, user_id=user_id, rank=ranking.rank)
             pool.save()
-        tmp['Success'] = True
-        tmp['Text'] = " "
-    results['Message'] = tmp;
+            tmp['Text'] = "No opponent, w8 pls"
+            tmp['Success'] = False
+    results['Message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -350,7 +363,7 @@ def get_my_category_list(request):
 def get_my_rank_by_category(request):
     results = {}
     error = {}
-    category_id = request.GET['id']
+    category_id = request.POST['id']
     if request.user.is_authenticated() == 0:
         error['Success'] = False
         error['Text'] = "Please, login!"
@@ -394,7 +407,7 @@ def get_played_game_info(request):
     results = {}
     list = []
     error = {}
-    game_info_id = request.GET['id']
+    game_info_id = request.POST['id']
     if request.user.is_authenticated() == 0:
         error['Success'] = False
         error['Text'] = "Please, login!"
