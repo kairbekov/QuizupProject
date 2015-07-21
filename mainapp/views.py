@@ -223,10 +223,10 @@ def add_to_pool(request):
     category_id = int(category_id)
     user_id = request.user.id
     user2_id = -1
-    tmp['Success'] = False
-    tmp['Text'] = "Not correct"
+    tmp['success'] = False
+    tmp['text'] = "Not correct"
     if request.user.is_authenticated() == 0:
-        tmp['Text'] = "Please, login!"
+        tmp['text'] = "Please, login!"
     if category_id is not None and request.user.is_authenticated():
         ranking = Ranking.objects.get(category_id=category_id, user_id=user_id)
         for i in Pool.objects.all():
@@ -235,8 +235,6 @@ def add_to_pool(request):
                 break
         if user2_id != -1:
             #pool = Pool.objects.get(user_id=user2_id, category_id=category_id)
-            tmp['Opponent_id'] = user2_id
-            tmp['Text'] = "Your opponent id = "+str(user2_id)
             user1_answer = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
             user2_answer = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
             user1_answer.save()
@@ -245,15 +243,21 @@ def add_to_pool(request):
             game.save()
             newGame = GameInfo(user_id_1=user_id, user_id_2=user2_id, category_id=category_id, game_status=1, point_1=0, point_2=0, game_id=game.id)
             newGame.save()
-            tmp['Game_id'] = newGame.id
-            tmp['Opponent_name'] = User.objects.get(id=user2_id).first_name
-            tmp['Opponent_points'] = Ranking.objects.get(user_id=user2_id,category_id=category_id).rank
-            tmp['Success'] = True
+            question_list = generateQuestions()
+            tmp['success'] = True
+            tmp['text'] = "Your opponent id = "+str(user2_id)
+            tmp['game_id'] = newGame.id
+            tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+            tmp['opponent_name'] = User.objects.get(id=user2_id).first_name
+            tmp['opponent_id'] = user2_id
+            tmp['opponent_city'] = "NYC"
+            tmp['opponent_points'] = Ranking.objects.get(user_id=user2_id,category_id=category_id).rank
+            tmp['Questions'] = question_list
         else:
             pool = Pool(category_id=category_id, user_id=user_id, rank=ranking.rank)
             pool.save()
-            tmp['Text'] = "No opponent, w8 pls"
-            tmp['Success'] = False
+            tmp['text'] = "No opponent, w8 pls"
+            tmp['success'] = False
     results['Message'] = tmp
     return JsonResponse(data=results)
 
@@ -441,6 +445,18 @@ def get_played_game_info(request):
     return JsonResponse(data=results)
 
 
-
+def generateQuestions():
+    list = []
+    for i in Questions.objects.all():
+        tmp = {}
+        tmp['question'] = i.question_text
+        tmp['answer_1'] = i.answer_1
+        tmp['answer_2'] = i.answer_2
+        tmp['answer_3'] = i.answer_3
+        tmp['answer_4'] = i.answer_4
+        tmp['correct_answer'] = i.correct_answer
+        list.append(tmp)
+        if list.__len__() >= 5: break
+    return list
 
 
