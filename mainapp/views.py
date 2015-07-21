@@ -352,12 +352,17 @@ def get_my_category_list(request):
         results['Message'] = error
     else:
         category_list = []
+        listOfId = []
         for i in GameInfo.objects.filter(Q(user_id_1 = request.user.id) | Q(user_id_2 = request.user.id)):
+            listOfId.append(i.category_id)
+        listOfId = set(listOfId)
+        listOfId = list(listOfId)
+        for i in listOfId:
             tmp = {}
-            category = Categories.objects.get(id=i.category_id)
-            tmp['category_name'] = category.name
-            tmp['subcategory_name'] = category.subcategory
-            tmp['id'] = category.id
+            k = Categories.objects.get(id=i)
+            tmp['id'] = k.id
+            tmp['name'] = k.name
+            tmp['subcategory'] = k.subcategory
             category_list.append(tmp)
         results['Message'] = category_list
     return JsonResponse(data=results)
