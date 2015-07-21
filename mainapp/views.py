@@ -59,8 +59,6 @@ def registration(request):
     username = request.POST['username']
     password = request.POST['password']
     email = request.POST['email']
-    #user_check1 = User.objects.get(username=username)
-    #user_check2 = User.objects.get(email=email)
     if username and password and email:
         user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
