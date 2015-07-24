@@ -31,12 +31,10 @@ def login_view(request):
             tmp['Text'] = "Your account is disabled"
             #return HttpResponse("Your account is disabled.")
     else:
-         #print "Invalid login details: {0}, {1}".format(username, password)
          tmp['Success'] = False
          tmp['Text'] = "Invalid login details supplied"
          #return HttpResponse("Invalid login details supplied.")
     results['Message'] = tmp
-    #print(request.META['csrftoken'])
     return JsonResponse(data=results)
 
 @csrf_exempt
