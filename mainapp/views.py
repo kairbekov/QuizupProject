@@ -461,3 +461,45 @@ def generateQuestions():
     return list
 
 
+@csrf_exempt
+def game_end(request):
+    results = {}
+    list = []
+    error = {}
+    game_id = request.POST['id']
+    points = request.POST['points']
+    my_answer_1 = request.POST['answer_1']
+    my_answer_2 = request.POST['answer_2']
+    my_answer_3 = request.POST['answer_3']
+    my_answer_4 = request.POST['answer_4']
+    my_answer_5 = request.POST['answer_5']
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        user_answer_1 = Game.objects.get(id=game_id).user1_answer_id
+        user_answer_2 = Game(id=game_id).user2_answer_id
+        gameInfo = GameInfo.objects.get(game_id=game_id)
+        
+    return JsonResponse(data=results)
+
+@csrf_exempt
+def get_my_rank(request):
+    results = {}
+    error = {}
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        ranking = []
+        for i in Ranking.objects.all():
+            if i.user_id == request.user.id:
+                tmp = {}
+                category_name = Categories.objects.get(id=i.category_id).name
+                tmp['points'] = i.rank
+                tmp['category_name'] = category_name
+                ranking.append(tmp)
+        results['Message'] = ranking
+    return JsonResponse(data=results)
