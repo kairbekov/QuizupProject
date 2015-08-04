@@ -492,7 +492,6 @@ def add_to_pool(request):
                 gI = GameInfo.objects.get(category_id=category_id,user_id_1=request.user.id)
                 inPool = 1
                 if gI.user_id_2 != 0 and gI.game_status == '2':
-                    print("DAT stat")
                     opponent = gI.user_id_2
                     game = Game.objects.get(id=gI.game_id)
                     questions = []
@@ -546,9 +545,11 @@ def add_to_pool(request):
                     game.question_id_5 = questions[4]['id']
                     game.save()
                     break
-
+        if inPool == 1 and isOpponent != 1:
+            tmp['success'] = False
+            tmp['text'] = "No opponent"
         #add to pool
-        if isOpponent == 0:
+        if isOpponent == 0 and inPool == 0:
             user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
             user_answer_list_1.save()
             user_answer_list_2 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
