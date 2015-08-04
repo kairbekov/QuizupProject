@@ -212,52 +212,6 @@ def pool(request):
     return JsonResponse(data=results)
 
 @csrf_exempt
-def add_to_pool(request):
-    results = {}
-    tmp = {}
-    category_id = request.POST['category_id']
-    category_id = int(category_id)
-    user_id = request.user.id
-    user2_id = -1
-    tmp['success'] = False
-    tmp['text'] = "Not correct"
-    if request.user.is_authenticated() == 0:
-        tmp['text'] = "Please, login!"
-    if category_id is not None and request.user.is_authenticated():
-        ranking = Ranking.objects.get(category_id=category_id, user_id=user_id)
-        for i in Pool.objects.all():
-            if i.user_id!=user_id and i.category_id==category_id and abs(i.rank-ranking.rank)<100:
-                user2_id = i.user_id
-                break
-        if user2_id != -1:
-            #pool = Pool.objects.get(user_id=user2_id, category_id=category_id)
-            user1_answer = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
-            user2_answer = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
-            user1_answer.save()
-            user2_answer.save()
-            game = Game(question_id_1=1, question_id_2=2, question_id_3=3, question_id_4=5, question_id_5=1, user1_answer_id=user1_answer.id, user2_answer_id=user2_answer.id)
-            game.save()
-            newGame = GameInfo(user_id_1=user_id, user_id_2=user2_id, category_id=category_id, game_status=1, point_1=0, point_2=0, game_id=game.id)
-            newGame.save()
-            question_list = generateQuestions()
-            tmp['success'] = True
-            tmp['text'] = "Your opponent id = "+str(user2_id)
-            tmp['game_id'] = newGame.id
-            tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
-            tmp['opponent_name'] = User.objects.get(id=user2_id).first_name
-            tmp['opponent_id'] = user2_id
-            tmp['opponent_city'] = "NYC"
-            tmp['opponent_points'] = Ranking.objects.get(user_id=user2_id,category_id=category_id).rank
-            tmp['Questions'] = question_list
-        else:
-            pool = Pool(category_id=category_id, user_id=user_id, rank=ranking.rank)
-            pool.save()
-            tmp['text'] = "No opponent, w8 pls"
-            tmp['success'] = False
-    results['Message'] = tmp
-    return JsonResponse(data=results)
-
-@csrf_exempt
 def rank_list(request):
     results = {}
     error = {}
@@ -450,6 +404,7 @@ def generateQuestions():
     list = []
     for i in Questions.objects.all():
         tmp = {}
+        tmp['id'] = i.id
         tmp['question'] = i.question_text
         tmp['answer_1'] = i.answer_1
         tmp['answer_2'] = i.answer_2
@@ -503,3 +458,109 @@ def get_my_rank(request):
                 ranking.append(tmp)
         results['Message'] = ranking
     return JsonResponse(data=results)
+
+
+@csrf_exempt
+def add_to_pool(request):
+    results = {}
+    tmp = {}
+    error = {}
+    category_id = request.POST['category_id']
+    category_id = int(category_id)
+    # 1) Proverim esli li user v Pool
+    #    1.1) Esli est` proverim nawelsya li sopernik
+    #       a) Esli nawelsya otpravlyem dannie
+    #    1.2) Esli netu usera v Pool iwem sopernika
+    #       a) Esli est` sopernik otpravlyem dannie
+    #       b) Esli netu sopernika dobavlyem v Pool
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        opponent = -1
+        rank = 0
+        inPool = 0
+        isOpponent = 0
+        # total rank of dat user
+        for i in Ranking.objects.all():
+            if i.user_id == request.user.id:
+                rank+=i.rank
+        # check dat user in the pool
+        for i in Pool.objects.all():
+            if i.user_id == request.user.id and i.category_id == category_id:
+                gI = GameInfo.objects.get(category_id=category_id,user_id_1=request.user.id)
+                inPool = 1
+                if gI.user_id_2 != 0 and gI.game_status == '2':
+                    print("DAT stat")
+                    opponent = gI.user_id_2
+                    game = Game.objects.get(id=gI.game_id)
+                    questions = []
+                    list = []
+                    list.append(game.question_id_1)
+                    list.append(game.question_id_2)
+                    list.append(game.question_id_3)
+                    list.append(game.question_id_4)
+                    list.append(game.question_id_5)
+                    for i in list:
+                        obj = {}
+                        obj['id'] = i
+                        k = Questions.objects.get(id=i)
+                        obj['question'] = k.question_text
+                        obj['answer_1'] = k.answer_1
+                        obj['answer_2'] = k.answer_2
+                        obj['answer_3'] = k.answer_3
+                        obj['answer_4'] = k.answer_4
+                        obj['correct_answer'] = k.correct_answer
+                        questions.append(obj)
+                    tmp['success'] = True
+                    tmp['game_id'] = gI.game_id
+                    tmp['opponent_name'] = User.objects.get(id=opponent).first_name +" "+ User.objects.get(id=opponent).last_name
+                    tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+                    tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
+                    tmp['questions'] = questions
+                    isOpponent = 1
+                    # user_2 answer list
+        if inPool == 0:
+            # find opponent in the pool
+            for i in Pool.objects.all():
+                if i.category_id == category_id and i.user_id != request.user.id and abs(i.rank-rank)<200:
+                    opponent = i.user_id
+                    gI = GameInfo.objects.get(category_id=category_id, user_id_1=opponent)
+                    gI.user_id_2 = request.user.id
+                    gI.game_status = 2
+                    gI.save()
+                    isOpponent = 1
+                    questions = generateQuestions()
+                    tmp['success'] = True
+                    tmp['game_id'] = gI.game_id
+                    tmp['opponent_name'] = User.objects.get(id=opponent).first_name +" "+ User.objects.get(id=opponent).last_name
+                    tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+                    tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
+                    tmp['questions'] = questions
+                    game = Game.objects.get(id=gI.game_id)
+                    game.question_id_1 = questions[0]['id']
+                    game.question_id_2 = questions[1]['id']
+                    game.question_id_3 = questions[2]['id']
+                    game.question_id_4 = questions[3]['id']
+                    game.question_id_5 = questions[4]['id']
+                    game.save()
+                    break
+
+        #add to pool
+        if isOpponent == 0:
+            user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+            user_answer_list_1.save()
+            user_answer_list_2 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+            user_answer_list_2.save()
+            game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
+            game.save()
+            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0)
+            gameInfo.save()
+            pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank)
+            pool.save()
+            tmp['success'] = False
+            tmp['text'] = "Added to pool"
+        results['Message'] = tmp
+        return JsonResponse(data=results)
+
