@@ -1,14 +1,17 @@
+import csv
+import os
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from os import path
 
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from mainapp.models import *
-
+import codecs
 
 @csrf_exempt
 def login_view(request):
@@ -166,7 +169,7 @@ def add_question(request):
     answer_4 = request.GET['answer_4']
     correct_answer = request.GET['correct_answer']
     if category_id and question_text and answer_1 and answer_2 and answer_3 and answer_4 and correct_answer:
-        question = Questions(category_id=category_id, question_text=question_text, answer_1=answer_1, answer_2=answer_2, answer_3=answer_3, answer_4=answer_4, correct_answer=correct_answer)
+        question = Questions(category_id=category_id, question_text=question_text, answer_1=answer_1, answer_2=answer_2, answer_3=answer_3, answer_4=answer_4, correct_answer=correct_answer, level=1)
         question.save()
         tmp['Text'] = " "
         tmp['Success'] = True
@@ -415,30 +418,6 @@ def generateQuestions():
         if list.__len__() >= 5: break
     return list
 
-
-@csrf_exempt
-def game_end(request):
-    results = {}
-    list = []
-    error = {}
-    game_id = request.POST['id']
-    points = request.POST['points']
-    my_answer_1 = request.POST['answer_1']
-    my_answer_2 = request.POST['answer_2']
-    my_answer_3 = request.POST['answer_3']
-    my_answer_4 = request.POST['answer_4']
-    my_answer_5 = request.POST['answer_5']
-    if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
-    else:
-        user_answer_1 = Game.objects.get(id=game_id).user1_answer_id
-        user_answer_2 = Game(id=game_id).user2_answer_id
-        gameInfo = GameInfo.objects.get(game_id=game_id)
-        
-    return JsonResponse(data=results)
-
 @csrf_exempt
 def get_my_rank(request):
     results = {}
@@ -489,7 +468,7 @@ def add_to_pool(request):
         # check dat user in the pool
         for i in Pool.objects.all():
             if i.user_id == request.user.id and i.category_id == category_id:
-                gI = GameInfo.objects.get(category_id=category_id,user_id_1=request.user.id)
+                gI = GameInfo.objects.get(category_id=category_id, user_id_1=request.user.id)
                 inPool = 1
                 if gI.user_id_2 != 0 and gI.game_status == '2':
                     opponent = gI.user_id_2
@@ -519,6 +498,7 @@ def add_to_pool(request):
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     isOpponent = 1
+                    i.delete()
                     # user_2 answer list
         if inPool == 0:
             # find opponent in the pool
@@ -565,3 +545,75 @@ def add_to_pool(request):
         results['Message'] = tmp
         return JsonResponse(data=results)
 
+
+@csrf_exempt
+def game_end(request):
+    results = {}
+    error = {}
+    game_id = request.POST['game_id']
+    points = request.POST['total']
+    user_answer_1 = request.POST['answer1']
+    user_answer_2 = request.POST['answer2']
+    user_answer_3 = request.POST['answer3']
+    user_answer_4 = request.POST['answer4']
+    user_answer_5 = request.POST['answer5']
+    point_1 = request.POST['point1']
+    point_2 = request.POST['point2']
+    point_3 = request.POST['point3']
+    point_4 = request.POST['point4']
+    point_5 = request.POST['point5']
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        gameInfo = GameInfo.objects.get(game_id=game_id)
+        game = Game.objects.get(id=game_id)
+        answerList = UserAnswerList(id=game.user1_answer_id)
+        if gameInfo.user_id_1 == request.user.id:
+            gameInfo.point_1 = points
+            answerList = UserAnswerList(id=game.user1_answer_id)
+
+        elif gameInfo.user_id_2 == request.user.id:
+            gameInfo.point_2 = points
+            answerList = UserAnswerList(id=game.user2_answer_id)
+        answerList.user_answer_1 = user_answer_1
+        answerList.user_answer_2 = user_answer_2
+        answerList.user_answer_3 = user_answer_3
+        answerList.user_answer_4 = user_answer_4
+        answerList.user_answer_5 = user_answer_5
+        answerList.point_1 = point_1
+        answerList.point_2 = point_2
+        answerList.point_3 = point_3
+        answerList.point_4 = point_4
+        answerList.point_5 = point_5
+        answerList.save()
+        gameInfo.save()
+        game.save()
+    return JsonResponse(data=results)
+
+
+@csrf_exempt
+def get_data_from_file(request):
+    results = {}
+    error = {}
+    list = []
+    if request.user.is_authenticated() == 0:
+        error['Success'] = False
+        error['Text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        #set a path
+        file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.csv')
+        with codecs.open(file_path, 'rU', encoding='utf-8-sig') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';', quotechar='|')
+            header = reader.next()
+            #print header
+            for row in reader:
+                #newQuestion = Questions(category_id=row[0], question_text=row[1], answer_1=row[2], answer_2=row[3], answer_3=row[4], answer_4=row[5], correct_answer=row[6], level=row[7])
+                #newQuestion.save()
+                #unicode_row = [x.decode('utf8') for x in row]
+                print row
+                list.append(row)
+    results['Message'] = list
+    return JsonResponse(data=results)
