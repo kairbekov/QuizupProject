@@ -36,9 +36,10 @@ urlpatterns = [
     url(r'^gameend/', game_end, name='game_end'),
     url(r'^getmyrank/', get_my_rank, name='get_my_rank'),
     url(r'^gameresult/', game_result, name='game_result'),
+    url(r'^killsearch/', kill_search, name='kill_search'),
 
     # Script for reading from file
-    #url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
+    url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
 
 ]
 
