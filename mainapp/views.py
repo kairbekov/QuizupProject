@@ -358,11 +358,13 @@ def get_played_games_list(request):
             games_list = {}
             games_list['opponent_name'] = opponent.first_name
             games_list['date'] = datetime.datetime.now()
-            status = "Draw"
-            if (request.user.id == i.user_id_1 and i.point_1 > i.point_2) or (request.user.id == i.user_id_2 and i.point_1 < i.point_2):
+            status = " "
+            if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
                 status = "Win"
-            elif (request.user.id == i.user_id_1 and i.point_1 < i.point_2) or (request.user.id == i.user_id_2 and i.point_1 > i.point_2):
+            elif (request.user.id == i.user_id_1 and int(i.point_1) < int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) > int(i.point_2)):
                 status = "Lose"
+            else:
+                status = "Draw"
             games_list['status'] = status
             games_list['category_name'] = Categories.objects.get(id=i.category_id).name
             games_list['game_id'] = i.game_id
@@ -500,12 +502,11 @@ def add_to_pool(request):
                         questions.append(obj)
                     tmp['success'] = True
                     tmp['game_id'] = gI.game_id
-                    tmp['opponent_name'] = User.objects.get(id=opponent).first_name +" "+ User.objects.get(id=opponent).last_name
+                    tmp['opponent_name'] = User.objects.get(id=opponent).first_name
                     tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     isOpponent = 1
-                    i.delete()
                     # user_2 answer list
         if inPool == 0:
             # find opponent in the pool
