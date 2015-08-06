@@ -1,5 +1,6 @@
 import csv
 import os
+import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -10,6 +11,7 @@ from os import path
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+import sys
 from mainapp.models import *
 import codecs
 
@@ -355,10 +357,15 @@ def get_played_games_list(request):
                 opponent = User.objects.get(id=i.user_id_2)
             games_list = {}
             games_list['opponent_name'] = opponent.first_name
-            games_list['game_status'] = i.game_status
-            games_list['opponent_level'] = Ranking.objects.get(user_id=opponent.id, category_id=i.category_id).rank
-            games_list['category'] = Categories.objects.get(id=i.category_id).name
-            games_list['game_info_id'] = i.id
+            games_list['date'] = datetime.datetime.now()
+            status = "Draw"
+            if (request.user.id == i.user_id_1 and i.point_1 > i.point_2) or (request.user.id == i.user_id_2 and i.point_1 < i.point_2):
+                status = "Win"
+            elif (request.user.id == i.user_id_1 and i.point_1 < i.point_2) or (request.user.id == i.user_id_2 and i.point_1 > i.point_2):
+                status = "Lose"
+            games_list['status'] = status
+            games_list['category_name'] = Categories.objects.get(id=i.category_id).name
+            games_list['game_id'] = i.game_id
             list.append(games_list)
         results['Message'] = list
     return JsonResponse(data=results)
@@ -513,7 +520,7 @@ def add_to_pool(request):
                     questions = generateQuestions()
                     tmp['success'] = True
                     tmp['game_id'] = gI.game_id
-                    tmp['opponent_name'] = User.objects.get(id=opponent).first_name +" "+ User.objects.get(id=opponent).last_name
+                    tmp['opponent_name'] = User.objects.get(id=opponent).first_name
                     tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
@@ -590,9 +597,15 @@ def game_end(request):
         answerList.save()
         gameInfo.save()
         game.save()
+        pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1)
+        if pool:
+            pool.delete()
+        tmp = {}
+        tmp['Success'] = True
+        tmp['Text'] = "Game end!"
+        results['Message'] = tmp
     return JsonResponse(data=results)
-
-
+'''
 @csrf_exempt
 def get_data_from_file(request):
     results = {}
@@ -605,15 +618,41 @@ def get_data_from_file(request):
     else:
         #set a path
         file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.csv')
-        with codecs.open(file_path, 'rU', encoding='utf-8-sig') as csvfile:
+        with codecs.open(file_path, "rU", encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile, delimiter=';', quotechar='|')
-            header = reader.next()
+            #header = reader.next()
             #print header
-            for row in reader:
+            #for row in reader:
                 #newQuestion = Questions(category_id=row[0], question_text=row[1], answer_1=row[2], answer_2=row[3], answer_3=row[4], answer_4=row[5], correct_answer=row[6], level=row[7])
                 #newQuestion.save()
                 #unicode_row = [x.decode('utf8') for x in row]
-                print row
-                list.append(row)
-    results['Message'] = list
+                #list.append("ab")
+    #results['Message'] = "adv"
+    return JsonResponse(data=results)
+'''
+@csrf_exempt
+def game_result(request):
+    results = {}
+    error = {}
+    game_id = request.POST['game_id']
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        tmp = {}
+        k = GameInfo.objects.get(game_id=game_id)
+        opponent = k.user_id_1
+        tmp['opponent_points'] = k.point_1
+        tmp['my_points'] = k.point_2
+        if request.user.id == k.user_id_1:
+            opponent = k.user_id_2
+            tmp['opponent_points'] = k.point_2
+            tmp['my_points'] = k.point_1
+        tmp['date'] = datetime.datetime.now()
+        tmp['opponent_name'] = User.objects.get(id=opponent).first_name
+        tmp['category_name'] = Categories.objects.get(id=k.category_id).name
+        tmp['success'] = True
+        tmp['text'] = "Results"
+        results['Message'] = tmp
     return JsonResponse(data=results)
