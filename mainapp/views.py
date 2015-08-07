@@ -470,7 +470,6 @@ def add_to_pool(request):
         error['Text'] = "Please, login!"
         results['Message'] = error
     else:
-        opponent = -1
         rank = Ranking.objects.get(user_id=request.user.id,category_id=category_id).rank
         inPool = 0
         isOpponent = 0
