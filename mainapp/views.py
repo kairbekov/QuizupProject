@@ -451,6 +451,10 @@ def get_my_rank(request):
         results['Message'] = ranking
     return JsonResponse(data=results)
 
+# game_status = 1  // firs player ready to play
+# game_status = 2  // first and second players ready to play
+# game_status = 3  // one of the players finished game
+# game_status = 4  // both players finished game
 
 @csrf_exempt
 def add_to_pool(request):
@@ -476,9 +480,9 @@ def add_to_pool(request):
         # check dat user in the pool
         for i in Pool.objects.all():
             if i.user_id == request.user.id and i.category_id == category_id:
-                gI = GameInfo.objects.get(category_id=category_id, user_id_1=request.user.id)
+                gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=request.user.id), Q(game_status='1') | Q(game_status='2'))
                 inPool = 1
-                if gI.user_id_2 != 0 and gI.game_status == 2:
+                if gI.user_id_2 != 0 and int(gI.game_status) == 2:
                     opponent = gI.user_id_2
                     game = Game.objects.get(id=gI.game_id)
                     questions = []
@@ -506,14 +510,13 @@ def add_to_pool(request):
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     isOpponent = 1
-                    inPool = 1
-                    # user_2 answer list
         if inPool == 0:
             # find opponent in the pool
             for i in Pool.objects.all():
                 if i.category_id == category_id and i.user_id != request.user.id and abs(i.rank-rank)<100:
                     opponent = i.user_id
-                    gI = GameInfo.objects.get(category_id=category_id, user_id_1=opponent)
+                    gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=opponent), Q(game_status='1') | Q(game_status='2'))
+                    #print type(gI.game_status)
                     gI.user_id_2 = request.user.id
                     gI.game_status = 2
                     gI.save()
@@ -595,6 +598,7 @@ def game_end(request):
         answerList.point_3 = point_3
         answerList.point_4 = point_4
         answerList.point_5 = point_5
+        gameInfo.game_status = int(gameInfo.game_status) + 1
         answerList.save()
         gameInfo.save()
         game.save()
@@ -659,16 +663,52 @@ def game_result(request):
 def kill_search(request):
     results = {}
     error = {}
+    tmp = {}
     category_id = request.POST['category_id']
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
         results['Message'] = error
     else:
-        tmp = {}
         k = Pool.objects.get(user_id=request.user.id, category_id=category_id)
-        k.delete()
-        tmp['success'] = True
-        tmp['text'] = "Deleted"
+        gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=request.user.id), (Q(game_status='1') | Q(game_status='2')))
+        if gI.game_status == '2':
+            opponent = gI.user_id_2
+            game = Game.objects.get(id=gI.game_id)
+            questions = []
+            list = []
+            list.append(game.question_id_1)
+            list.append(game.question_id_2)
+            list.append(game.question_id_3)
+            list.append(game.question_id_4)
+            list.append(game.question_id_5)
+            for i in list:
+                obj = {}
+                obj['id'] = i
+                q = Questions.objects.get(id=i)
+                obj['question'] = q.question_text
+                obj['answer_1'] = q.answer_1
+                obj['answer_2'] = q.answer_2
+                obj['answer_3'] = q.answer_3
+                obj['answer_4'] = q.answer_4
+                obj['correct_answer'] = q.correct_answer
+                questions.append(obj)
+            tmp['success'] = True
+            tmp['game_id'] = gI.game_id
+            tmp['opponent_name'] = User.objects.get(id=opponent).first_name
+            tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+            tmp['opponent_points'] = Ranking.objects.get(user_id=opponent, category_id=category_id).rank
+            tmp['questions'] = questions
+        else:
+            g = Game.objects.get(id=gI.game_id)
+            ual1 = UserAnswerList(id=g.user1_answer_id)
+            ual2 = UserAnswerList(id=g.user2_answer_id)
+            ual1.delete()
+            ual2.delete()
+            g.delete()
+            gI.delete()
+            k.delete()
+            tmp['success'] = False
+            tmp['text'] = "Game Deleted"
         results['Message'] = tmp
     return JsonResponse(data=results)

@@ -16,7 +16,7 @@ class Questions(models.Model):
     answer_2 = models.CharField(max_length=256)
     answer_3 = models.CharField(max_length=256)
     answer_4 = models.CharField(max_length=256)
-    correct_answer = models.CharField(max_length=256)
+    correct_answer = models.IntegerField()
     level = models.IntegerField()
 
 class Pool(models.Model):
@@ -38,10 +38,10 @@ class GameInfo(models.Model):
     user_id_2 = models.IntegerField()
     game_id = models.IntegerField()
     category_id = models.IntegerField()
-    game_status = models.CharField(max_length=256)
-    point_1 = models.CharField(max_length=256)
-    point_2 = models.CharField(max_length=256)
-
+    game_status = models.IntegerField()
+    point_1 = models.IntegerField()
+    point_2 = models.IntegerField()
+    date = models.DateTimeField()
 
 class Game(models.Model):
     question_id_1 = models.IntegerField()
@@ -54,11 +54,11 @@ class Game(models.Model):
 
 
 class UserAnswerList(models.Model):
-    user_answer_1 = models.CharField(max_length=256)
-    user_answer_2 = models.CharField(max_length=256)
-    user_answer_3 = models.CharField(max_length=256)
-    user_answer_4 = models.CharField(max_length=256)
-    user_answer_5 = models.CharField(max_length=256)
+    user_answer_1 = models.IntegerField()
+    user_answer_2 = models.IntegerField()
+    user_answer_3 = models.IntegerField()
+    user_answer_4 = models.IntegerField()
+    user_answer_5 = models.IntegerField()
     point_1 = models.IntegerField()
     point_2 = models.IntegerField()
     point_3 = models.IntegerField()
