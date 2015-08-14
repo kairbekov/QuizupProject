@@ -40,7 +40,7 @@ def login_view(request):
             #return HttpResponse("Your account is disabled.")
     else:
          tmp['Success'] = False
-         tmp['Text'] = "Invalid login details supplied"
+         tmp['Text'] = "Invalid login or password"
          #return HttpResponse("Invalid login details supplied.")
     results['Message'] = tmp
     return JsonResponse(data=results)
@@ -547,7 +547,7 @@ def add_to_pool(request):
             user_answer_list_2.save()
             game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
             game.save()
-            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0)
+            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now())
             gameInfo.save()
             pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank)
             pool.save()
@@ -644,18 +644,22 @@ def game_result(request):
     else:
         tmp = {}
         k = GameInfo.objects.get(game_id=game_id)
-        opponent = k.user_id_1
-        tmp['opponent_points'] = k.point_1
-        tmp['my_points'] = k.point_2
-        if request.user.id == k.user_id_1:
-            opponent = k.user_id_2
-            tmp['opponent_points'] = k.point_2
-            tmp['my_points'] = k.point_1
-        tmp['date'] = datetime.datetime.now()
-        tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-        tmp['category_name'] = Categories.objects.get(id=k.category_id).name
-        tmp['success'] = True
-        tmp['text'] = "Results"
+        if k.game_status == 3:
+            tmp['success'] = False
+            tmp['text'] = "The second player doesn't finish the game"
+        else:
+            opponent = k.user_id_1
+            tmp['opponent_points'] = k.point_1
+            tmp['my_points'] = k.point_2
+            if request.user.id == k.user_id_1:
+                opponent = k.user_id_2
+                tmp['opponent_points'] = k.point_2
+                tmp['my_points'] = k.point_1
+            tmp['date'] = k.date
+            tmp['opponent_name'] = User.objects.get(id=opponent).first_name
+            tmp['category_name'] = Categories.objects.get(id=k.category_id).name
+            tmp['success'] = True
+            tmp['text'] = "Results"
         results['Message'] = tmp
     return JsonResponse(data=results)
 
@@ -671,8 +675,8 @@ def kill_search(request):
         results['Message'] = error
     else:
         k = Pool.objects.get(user_id=request.user.id, category_id=category_id)
-        gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=request.user.id), (Q(game_status='1') | Q(game_status='2')))
-        if gI.game_status == '2':
+        gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=request.user.id), (Q(game_status=1) | Q(game_status=2)))
+        if int(gI.game_status) == 2:
             opponent = gI.user_id_2
             game = Game.objects.get(id=gI.game_id)
             questions = []
