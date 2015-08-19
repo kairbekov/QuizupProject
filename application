@@ -1,0 +1,11 @@
+def application(env, start_response):
+    import sys
+    from datetime import date
+    from string import Template
+
+    with open ("ROOT/index.py", "r") as index_file:
+         data=index_file.read().replace('\n', '')
+         index_object = Template(data)
+         index_formated=index_object.substitute(mydate=date.today().year)
+    start_response('200 OK', [('Content-Type','text/html')])
+    return [ index_formated  ]
