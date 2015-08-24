@@ -66,4 +66,3 @@ class UserAnswerList(models.Model):
     point_5 = models.IntegerField()
 
 
-

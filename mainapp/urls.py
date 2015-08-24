@@ -42,5 +42,3 @@ urlpatterns = [
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
 
 ]
-
-
