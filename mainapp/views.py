@@ -644,20 +644,20 @@ def game_result(request):
     else:
         tmp = {}
         k = GameInfo.objects.get(game_id=game_id)
+        opponent = k.user_id_1
+        tmp['opponent_points'] = k.point_1
+        tmp['my_points'] = k.point_2
+        if request.user.id == k.user_id_1:
+            opponent = k.user_id_2
+            tmp['opponent_points'] = k.point_2
+            tmp['my_points'] = k.point_1
+        tmp['date'] = k.date
+        tmp['opponent_name'] = User.objects.get(id=opponent).first_name
+        tmp['category_name'] = Categories.objects.get(id=k.category_id).name
         if k.game_status == 3:
             tmp['success'] = False
             tmp['text'] = "The second player doesn't finish the game"
         else:
-            opponent = k.user_id_1
-            tmp['opponent_points'] = k.point_1
-            tmp['my_points'] = k.point_2
-            if request.user.id == k.user_id_1:
-                opponent = k.user_id_2
-                tmp['opponent_points'] = k.point_2
-                tmp['my_points'] = k.point_1
-            tmp['date'] = k.date
-            tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-            tmp['category_name'] = Categories.objects.get(id=k.category_id).name
             tmp['success'] = True
             tmp['text'] = "Results"
         results['Message'] = tmp
