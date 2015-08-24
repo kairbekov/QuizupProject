@@ -75,7 +75,7 @@ def registration(request):
             ranking.save()
         tmp['Success'] = True
         tmp['Text'] = " "
-    results['Message'] = tmp;
+    results['Message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -196,7 +196,7 @@ def delete_category(request):
         category.delete()
         tmp['Success'] = True
         tmp['Text'] = " "
-    results['Message'] = tmp;
+    results['Message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
