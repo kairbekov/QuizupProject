@@ -62,13 +62,17 @@ def registration(request):
     tmp = {}
     tmp['Success'] = False
     tmp['Text'] = "Current user is already exist"
-    username = request.POST['username']
+    #username = request.POST['username']
+    first_name = request.POST['first_name']
+    last_name = request.POST['last_name']
     password = request.POST['password']
     email = request.POST['email']
-    if username and password and email:
-        user = User.objects.create_user(username=username, email=email, password=password)
+    if first_name and last_name and password and email:
+        user = User.objects.create_user(username=first_name, email=email, password=password, first_name=first_name, last_name=last_name)
         user.save()
-        user = authenticate(username=username, password=password)
+        person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=0)
+        person.save()
+        user = authenticate(username=first_name, password=password)
         login(request,user)
         for i in Categories.objects.all():
             ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
@@ -584,10 +588,10 @@ def game_end(request):
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
         person = Person.objects.get(user_id=request.user.id)
-        person.total_points = person.total_points + points
+        person.total_points = person.total_points + int(points)
         person.save()
-        ranking = Ranking.objects.get(user_id=request.user.id,category_id=gameInfo.category_id)
-        ranking.rank = ranking.rank + points
+        ranking = Ranking.objects.get(user_id=request.user.id, category_id=gameInfo.category_id)
+        ranking.rank = ranking.rank + int(points)
         ranking.save()
         answerList = UserAnswerList(id=game.user1_answer_id)
         if gameInfo.user_id_1 == request.user.id:
