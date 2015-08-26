@@ -293,7 +293,7 @@ def get_my_profile(request):
         results['Message'] = error
     else:
         profile = {}
-        tmp = User.objects.get(id = request.user.id)
+        tmp = User.objects.get(id=request.user.id)
         person = Person.objects.get(user_id=tmp.id)
         profile['id'] = tmp.id
         profile['first_name'] = tmp.first_name
@@ -743,6 +743,7 @@ def login_social_network(request):
     user = authenticate(username=first_name, password="123")
     login(request, user)
     # add friends
+
     tmp['success'] = True
     tmp['text'] = "good"
     results['Message'] = tmp
