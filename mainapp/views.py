@@ -303,6 +303,7 @@ def get_my_profile(request):
         profile['first_name'] = tmp.first_name
         profile['last_name'] = tmp.last_name
         profile['avatar'] = person.avatar
+        profile['total_points'] = person.total_points
         results['Message'] = profile
     return JsonResponse(data=results)
 
