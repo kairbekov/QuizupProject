@@ -575,6 +575,7 @@ def game_end(request):
     point_3 = request.POST['point3']
     point_4 = request.POST['point4']
     point_5 = request.POST['point5']
+    #points = int(points)
     if request.user.is_authenticated() == 0:
         error['Success'] = False
         error['Text'] = "Please, login!"
@@ -583,10 +584,10 @@ def game_end(request):
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
         person = Person.objects.get(user_id=request.user.id)
-        person.total_points = person.total_points + point_1 + point_2 + point_3 + point_4 + point_5
+        person.total_points = person.total_points + points
         person.save()
         ranking = Ranking.objects.get(user_id=request.user.id,category_id=gameInfo.category_id)
-        ranking.rank = ranking.rank + person.total_points
+        ranking.rank = ranking.rank + points
         ranking.save()
         answerList = UserAnswerList(id=game.user1_answer_id)
         if gameInfo.user_id_1 == request.user.id:
@@ -729,7 +730,6 @@ def kill_search(request):
 @csrf_exempt
 def login_social_network(request):
     results = {}
-    error = {}
     tmp = {}
     first_name = request.POST['first_name']
     last_name = request.POST['last_name']
@@ -744,7 +744,7 @@ def login_social_network(request):
     if user_social is None:
         user = User.objects.create_user(username=first_name, password="123", first_name=first_name, last_name=last_name)
         user.save()
-        person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_rank=0)
+        person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=0)
         person.save()
         for i in Categories.objects.all():
             ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
