@@ -582,11 +582,16 @@ def game_end(request):
     else:
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
+        person = Person.objects.get(user_id=request.user.id)
+        person.total_points = person.total_points + point_1 + point_2 + point_3 + point_4 + point_5
+        person.save()
+        ranking = Ranking.objects.get(user_id=request.user.id,category_id=gameInfo.category_id)
+        ranking.rank = ranking.rank + person.total_points
+        ranking.save()
         answerList = UserAnswerList(id=game.user1_answer_id)
         if gameInfo.user_id_1 == request.user.id:
             gameInfo.point_1 = points
             answerList = UserAnswerList(id=game.user1_answer_id)
-
         elif gameInfo.user_id_2 == request.user.id:
             gameInfo.point_2 = points
             answerList = UserAnswerList(id=game.user2_answer_id)
