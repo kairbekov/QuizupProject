@@ -515,7 +515,7 @@ def add_to_pool(request):
         if inPool == 0:
             # find opponent in the pool
             for i in Pool.objects.all():
-                if i.category_id == category_id and i.user_id != request.user.id and abs(i.rank-rank)<100:
+                if i.category_id == category_id and i.user_id != request.user.id:
                     opponent = i.user_id
                     gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=opponent), Q(game_status='1') | Q(game_status='2'))
                     #print type(gI.game_status)
@@ -629,7 +629,8 @@ def get_data_from_file(request):
         results['Message'] = error
     else:
         #file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.xls')
-        rb = xlrd.open_workbook('C:/Users/Student/Desktop/test.xls',formatting_info=True)
+        #rb = xlrd.open_workbook('C:/Users/Student/Desktop/test.xls',formatting_info=True)
+        rb = xlrd.open_workbook('C:/Users/abuka/Desktop/test.xls',formatting_info=True)
         sheet = rb.sheet_by_index(0)
         for rownum in range(sheet.nrows):
             row = sheet.row_values(rownum)
@@ -745,6 +746,9 @@ def login_social_network(request):
         user.save()
         person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_rank=0)
         person.save()
+        for i in Categories.objects.all():
+            ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
+            ranking.save()
     user = authenticate(username=first_name, password="123")
     login(request, user)
     # add friends
