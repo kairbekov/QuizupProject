@@ -716,3 +716,35 @@ def kill_search(request):
             tmp['text'] = "Game Deleted"
         results['Message'] = tmp
     return JsonResponse(data=results)
+
+
+@csrf_exempt
+def login_social_network(request):
+    results = {}
+    error = {}
+    tmp = {}
+    first_name = request.POST['first_name']
+    last_name = request.POST['last_name']
+    avatar = request.POST['avatar']
+    city = request.POST['city']
+    id_vk = request.POST['id_vk']
+    id_fb = request.POST['id_fb']
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        # 1st case - if user doesn't exist in Users, registrate him
+        # 2nd case - else, new user
+        user_social = authenticate(username=first_name, password="123")
+        if user_social is None:
+            user = User.objects.create_user(username=first_name, password="123", first_name=first_name, last_name=last_name)
+            user.save()
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar)
+            person.save()
+        user = authenticate(username=first_name, password="123")
+        login(request, user)
+        tmp['success'] = True
+        tmp['text'] = "User already exist"
+    results['Message'] = tmp
+    return JsonResponse(data=results)

@@ -22,7 +22,7 @@ class Questions(models.Model):
 class Pool(models.Model):
     category_id = models.IntegerField()
     user_id = models.IntegerField()
-    rank = models.IntegerField()
+    rank = models.IntegerField()              # category rank
 
 class Ranking(models.Model):
     user_id = models.IntegerField()

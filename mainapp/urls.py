@@ -41,4 +41,7 @@ urlpatterns = [
     # Script for reading from file
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
 
+    # Vk and Fb methods
+    url(r'^login_cn/', login_social_network, name='login_social_network'),
+
 ]
