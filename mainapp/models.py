@@ -67,8 +67,8 @@ class UserAnswerList(models.Model):
 
 class Person(models.Model):
     user_id = models.IntegerField()
-    vk_id = models.IntegerField(null=True)
-    fb_id = models.IntegerField(null=True)
+    vk_id = models.BigIntegerField(null=True)
+    fb_id = models.BigIntegerField(null=True)
     city = models.CharField(max_length=256, null=True)
     avatar = models.CharField(max_length=256, null=True)
 
