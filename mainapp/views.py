@@ -732,8 +732,8 @@ def login_social_network(request):
     id_vk = request.POST['id_vk']
     id_fb = request.POST['id_fb']
     friends = request.POST['friends']
-    id_vk = int(id_vk)
-    id_fb = int(id_fb)
+    #id_vk = int(id_vk)
+    #id_fb = int(id_fb)
     user_social = authenticate(username=first_name, password="123")
     if user_social is None:
         user = User.objects.create_user(username=first_name, password="123", first_name=first_name, last_name=last_name)
