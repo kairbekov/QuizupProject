@@ -65,4 +65,10 @@ class UserAnswerList(models.Model):
     point_4 = models.IntegerField()
     point_5 = models.IntegerField()
 
+class Person(models.Model):
+    user_id = models.IntegerField()
+    vk_id = models.IntegerField()
+    fb_id = models.IntegerField()
+    city = models.CharField(max_length=256)
+    avatar = models.CharField(max_length=256)
 
