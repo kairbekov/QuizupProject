@@ -294,9 +294,11 @@ def get_my_profile(request):
     else:
         profile = {}
         tmp = User.objects.get(id = request.user.id)
+        person = Person.objects.get(user_id=tmp.id)
         profile['id'] = tmp.id
         profile['first_name'] = tmp.first_name
         profile['last_name'] = tmp.last_name
+        profile['avatar'] = person.avatar
         results['Message'] = profile
     return JsonResponse(data=results)
 
@@ -729,6 +731,7 @@ def login_social_network(request):
     city = request.POST['city']
     id_vk = request.POST['id_vk']
     id_fb = request.POST['id_fb']
+    friends = request.POST['friends']
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -744,7 +747,10 @@ def login_social_network(request):
             person.save()
         user = authenticate(username=first_name, password="123")
         login(request, user)
+        # add friends
+
         tmp['success'] = True
         tmp['text'] = "User already exist"
     results['Message'] = tmp
     return JsonResponse(data=results)
+
