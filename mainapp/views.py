@@ -783,3 +783,28 @@ def get_ranking(request):
     results['Message'] = list
     return JsonResponse(data=results)
 
+@csrf_exempt
+def get_friends(request):
+    results = {}
+    error = {}
+    list = []
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        for i in Friends.objects.all():
+            tmp = {}
+            if i.user_id_1 == request.user.id:
+                user = User.objects.get(id=i.user_id_2)
+                person = Person.objects.get(user_id=i.user_id_2)
+            elif i.user_id_2 == request.user.id:
+                user = User.objects.get(id=i.user_id_1)
+                person = Person.objects.get(user_id=i.user_id_1)
+            tmp['first_name'] = user.first_name
+            tmp['last_name'] = user.last_name
+            tmp['avatar'] = person.avatar
+            tmp['total_points'] = person.total_points
+            list.append(tmp)
+    results['Message'] = list
+    return JsonResponse(data=results)

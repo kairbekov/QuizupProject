@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^gameresult/', game_result, name='game_result'),
     url(r'^killsearch/', kill_search, name='kill_search'),
     url(r'^getranking/', get_ranking, name='get_ranking'),
+    url(r'^getfriends/', get_friends, name='get_friends'),
 
     # Script for reading from file
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
