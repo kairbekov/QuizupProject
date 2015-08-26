@@ -71,4 +71,6 @@ class Person(models.Model):
     fb_id = models.BigIntegerField(null=True)
     city = models.CharField(max_length=256, null=True)
     avatar = models.CharField(max_length=256, null=True)
+    total_points = models.IntegerField()
+
 

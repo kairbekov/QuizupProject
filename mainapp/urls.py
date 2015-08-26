@@ -37,11 +37,13 @@ urlpatterns = [
     url(r'^getmyrank/', get_my_rank, name='get_my_rank'),
     url(r'^gameresult/', game_result, name='game_result'),
     url(r'^killsearch/', kill_search, name='kill_search'),
+    url(r'^getranking/', get_ranking, name='get_ranking'),
 
     # Script for reading from file
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
 
     # Vk and Fb methods
     url(r'^login_sn/', login_social_network, name='login_social_network'),
+
 
 ]

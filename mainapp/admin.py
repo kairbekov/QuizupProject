@@ -28,7 +28,7 @@ class UserAnswerListAdmin(admin.ModelAdmin):
     list_display = ('user_answer_1', 'user_answer_2', 'user_answer_3', 'user_answer_4', 'user_answer_5', 'point_1', 'point_2', 'point_3', 'point_4', 'point_5')
 
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user_id', 'vk_id', 'fb_id', 'city', 'avatar')
+    list_display = ('id', 'user_id', 'vk_id', 'fb_id', 'city', 'avatar', 'total_points')
 
 
 admin.site.register(Categories, CategoriesAdmin)

@@ -71,7 +71,7 @@ def registration(request):
         user = authenticate(username=username, password=password)
         login(request,user)
         for i in Categories.objects.all():
-            ranking = Ranking(category_id=i.id, user_id=user.id, rank=1000)
+            ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
             ranking.save()
         tmp['Success'] = True
         tmp['Text'] = " "
@@ -738,7 +738,7 @@ def login_social_network(request):
     if user_social is None:
         user = User.objects.create_user(username=first_name, password="123", first_name=first_name, last_name=last_name)
         user.save()
-        person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar)
+        person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_rank=0)
         person.save()
     user = authenticate(username=first_name, password="123")
     login(request, user)
@@ -747,5 +747,25 @@ def login_social_network(request):
     tmp['success'] = True
     tmp['text'] = "good"
     results['Message'] = tmp
+    return JsonResponse(data=results)
+
+@csrf_exempt
+def get_ranking(request):
+    results = {}
+    error = {}
+    list = []
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        for i in Person.objects.order_by('-total_points'):
+            user = User.objects.get(id=i.user_id)
+            tmp = {}
+            tmp['total_points'] = i.total_points
+            tmp['first_name'] = user.first_name
+            tmp['last_name'] = user.last_name
+            list.append(tmp)
+    results['Message'] = list
     return JsonResponse(data=results)
 
