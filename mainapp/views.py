@@ -74,7 +74,7 @@ def registration(request):
         user.save()
         person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=0)
         person.save()
-        user = authenticate(username=first_name, password=password)
+        user = authenticate(username=email, password=password)
         login(request,user)
         for i in Categories.objects.all():
             ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
@@ -369,6 +369,7 @@ def get_played_games_list(request):
                 opponent = User.objects.get(id=i.user_id_2)
             games_list = {}
             games_list['opponent_name'] = opponent.first_name
+            games_list['avatar'] = Person.objects.get(user_id=opponent.id).avatar
             games_list['date'] = datetime.datetime.now()
             status = " "
             if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
@@ -816,6 +817,7 @@ def get_ranking(request):
             tmp['total_points'] = i.total_points
             tmp['first_name'] = user.first_name
             tmp['last_name'] = user.last_name
+            tmp['avatar'] = i.avatar
             list.append(tmp)
     results['Message'] = list
     return JsonResponse(data=results)
