@@ -70,7 +70,7 @@ def registration(request):
     password = request.POST['password']
     email = request.POST['email']
     if first_name and last_name and password and email:
-        user = User.objects.create_user(username=first_name, email=email, password=password, first_name=first_name, last_name=last_name)
+        user = User.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
         user.save()
         person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=0)
         person.save()
@@ -424,9 +424,9 @@ def get_played_game_info(request):
     return JsonResponse(data=results)
 
 
-def generateQuestions():
+def generateQuestions(category):
     list = []
-    p = random.sample(Questions.objects.all(), 5)
+    p = random.sample(Questions.objects.get(category_id=category), 5)
     for i in p:
         tmp = {}
         tmp['id'] = i.id
@@ -530,7 +530,7 @@ def add_to_pool(request):
                     gI.game_status = 2
                     gI.save()
                     isOpponent = 1
-                    questions = generateQuestions()
+                    questions = generateQuestions(category_id)
                     tmp['success'] = True
                     tmp['game_id'] = gI.game_id
                     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
@@ -759,6 +759,8 @@ def login_social_network(request):
             for i in Categories.objects.all():
                 ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
                 ranking.save()
+            user = authenticate(username="fb"+id_fb, password="123")
+            login(request, user)
         list = json.loads(friends)
         for i in list['friends']:
             friend = authenticate(username="fb"+str(i), password="123")
@@ -781,6 +783,9 @@ def login_social_network(request):
             for i in Categories.objects.all():
                 ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
                 ranking.save()
+            user = authenticate(username="vk"+id_vk, password="123")
+            login(request, user)
+
         list = json.loads(friends)
         for i in list['friends']:
             friend = authenticate(username="vk"+str(i), password="123")
