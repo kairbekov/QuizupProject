@@ -6,6 +6,8 @@ import codecs
 import random
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.serializers import json
+import json
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -668,6 +670,7 @@ def game_result(request):
         tmp['date'] = k.date
         tmp['opponent_name'] = User.objects.get(id=opponent).first_name
         tmp['category_name'] = Categories.objects.get(id=k.category_id).name
+        tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
         if k.game_status == 3:
             tmp['success'] = False
             tmp['text'] = "The second player doesn't finish the game"
@@ -743,19 +746,50 @@ def login_social_network(request):
     id_vk = request.POST['id_vk']
     id_fb = request.POST['id_fb']
     friends = request.POST['friends']
-    user_social = authenticate(username=first_name, password="123")
-    if user_social is None:
-        user = User.objects.create_user(username=first_name, password="123", first_name=first_name, last_name=last_name)
-        user.save()
-        person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=0)
-        person.save()
-        for i in Categories.objects.all():
-            ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
-            ranking.save()
-    user = authenticate(username=first_name, password="123")
-    login(request, user)
-    # add friends
-
+    if id_fb != '0':
+        try:
+            user_social = Person.objects.get(fb_id=id_fb)
+            user = authenticate(username="fb"+id_fb, password="123")
+            login(request, user)
+        except Person.DoesNotExist:
+            user = User.objects.create_user(username="fb"+id_fb, password="123", first_name=first_name, last_name=last_name)
+            user.save()
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=0)
+            person.save()
+            for i in Categories.objects.all():
+                ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
+                ranking.save()
+        list = json.loads(friends)
+        for i in list['friends']:
+            friend = authenticate(username="fb"+str(i), password="123")
+            if friend is not None:
+                try:
+                    friendship = Friends.objects.get((Q(user_id_1=user.id) & Q(user_id_2=friend.id)) | (Q(user_id_1=friend.id) & Q(user_id_2=user.id)))
+                except Friends.DoesNotExist:
+                    friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
+                    friendship.save()
+    elif id_vk != '0':
+        try:
+            user_social = Person.objects.get(vk_id=id_vk)
+            user = authenticate(username="vk"+id_vk, password="123")
+            login(request, user)
+        except Person.DoesNotExist:
+            user = User.objects.create_user(username="vk"+id_vk, password="123", first_name=first_name, last_name=last_name)
+            user.save()
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=0)
+            person.save()
+            for i in Categories.objects.all():
+                ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
+                ranking.save()
+        list = json.loads(friends)
+        for i in list['friends']:
+            friend = authenticate(username="vk"+str(i), password="123")
+            if friend is not None:
+                try:
+                    friendship = Friends.objects.get((Q(user_id_1=user.id) & Q(user_id_2=friend.id)) | (Q(user_id_1=friend.id) & Q(user_id_2=user.id)))
+                except Friends.DoesNotExist:
+                    friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
+                    friendship.save()
     tmp['success'] = True
     tmp['text'] = "good"
     results['Message'] = tmp
@@ -796,13 +830,19 @@ def get_friends(request):
             if i.user_id_1 == request.user.id:
                 user = User.objects.get(id=i.user_id_2)
                 person = Person.objects.get(user_id=i.user_id_2)
+                tmp['first_name'] = user.first_name
+                tmp['last_name'] = user.last_name
+                tmp['avatar'] = person.avatar
+                tmp['total_points'] = person.total_points
+                tmp['user_id'] = person.user_id
             elif i.user_id_2 == request.user.id:
                 user = User.objects.get(id=i.user_id_1)
                 person = Person.objects.get(user_id=i.user_id_1)
-            tmp['first_name'] = user.first_name
-            tmp['last_name'] = user.last_name
-            tmp['avatar'] = person.avatar
-            tmp['total_points'] = person.total_points
+                tmp['first_name'] = user.first_name
+                tmp['last_name'] = user.last_name
+                tmp['avatar'] = person.avatar
+                tmp['total_points'] = person.total_points
+                tmp['user_id'] = person.user_id
             list.append(tmp)
     results['Message'] = list
     return JsonResponse(data=results)
