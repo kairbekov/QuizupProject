@@ -884,6 +884,8 @@ def i_want_to_play_with_friend(request):
         game.save()
         gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now())
         gameInfo.save()
+        invitation = Invitation(game_id=game.id, challenger_id=request.user.id, status=0)
+        invitation.save()
         tmp['success'] = True
         tmp['text'] = "You invite your friend"
         results['Message'] = tmp
@@ -901,16 +903,67 @@ def who_challenge_me(request):
     else:
         gameInfo = None
         for i in GameInfo.objects.all():
-            if i.user_id_2==request.user.id:
+            if i.user_id_2==request.user.id and gameInfo.game_status == 1:
                 gameInfo = i
         if gameInfo != None:
             user = User.objects.get(id=gameInfo.user_id_1)
-            tmp['full_name'] = user.first_name + user.last_name
-            tmp['category_name'] = Categories.objects.get(id=gameInfo.category_id)
+            tmp['full_name'] = user.first_name+" "+user.last_name
+            tmp['category_name'] = Categories.objects.get(id=gameInfo.category_id).name
+            tmp['game_id'] = gameInfo.game_id
             tmp['success'] = True
             tmp['text'] = "You invite your friend"
         else:
             tmp['success'] = False
             tmp['text'] = "No challenge for you"
+        results['Message'] = tmp
+    return JsonResponse(data=results)
+
+@csrf_exempt
+def answer_to_challenge(request):
+    results = {}
+    error = {}
+    tmp = {}
+    answer = request.POST['answer']
+    game_id = request.POST['game_id']
+    answer = int(answer)
+    game_id = int(game_id)
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        invitation = Invitation.objects.get(game_id=game_id)
+        gameInfo = GameInfo.objects.get(game_id=game_id)
+        game = Game.objects.get(id=game_id)
+        user_answer_list_1 = UserAnswerList.objects.get(id=game.user1_answer_id)
+        user_answer_list_2 = UserAnswerList.objects.get(id=game.user2_answer_id)
+        if answer == 1:
+            user_answer_list_2.delete()
+            user_answer_list_1.delete()
+            game.delete()
+            gameInfo.delete()
+            invitation.delete()
+            tmp['success'] = False
+            tmp['text'] = "Game and other deleted"
+        elif answer == 2:
+            questions = []
+            list = generateQuestions()
+            for i in list:
+                obj = {}
+                obj['id'] = i
+                k = Questions.objects.get(id=i)
+                obj['question'] = k.question_text
+                obj['answer_1'] = k.answer_1
+                obj['answer_2'] = k.answer_2
+                obj['answer_3'] = k.answer_3
+                obj['answer_4'] = k.answer_4
+                obj['correct_answer'] = k.correct_answer
+                questions.append(obj)
+            tmp['success'] = True
+            tmp['game_id'] = game.id
+            tmp['opponent_name'] = User.objects.get(id=game.user_id_1).first_name
+            tmp['opponent_avatar'] = Person.objects.get(user_id=game.user_id_1).avatar
+            tmp['opponent_points'] = Person.objects.get(user_id=game.user_id_1).total_points
+            tmp['questions'] = questions
         results['Message'] = tmp
     return JsonResponse(data=results)

@@ -73,4 +73,8 @@ class Person(models.Model):
     avatar = models.CharField(max_length=256, null=True)
     total_points = models.IntegerField()
 
+class Invitation(models.Model):
+    game_id = models.IntegerField()
+    challenger_id = models.IntegerField()
+    status = models.IntegerField()
 
