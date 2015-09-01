@@ -921,7 +921,6 @@ def who_challenge_me(request):
 @csrf_exempt
 def answer_to_challenge(request):
     results = {}
-    #push
     error = {}
     tmp = {}
     answer = request.POST['answer']
