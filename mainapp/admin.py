@@ -30,6 +30,9 @@ class UserAnswerListAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     list_display = ('id', 'user_id', 'vk_id', 'fb_id', 'city', 'avatar', 'total_points')
 
+class InvitationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'game_id', 'challenger_id', 'status')
+
 
 admin.site.register(Categories, CategoriesAdmin)
 admin.site.register(Questions, QuestionsAdmin)
@@ -40,3 +43,4 @@ admin.site.register(GameInfo, GameInfoAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(UserAnswerList, UserAnswerListAdmin)
 admin.site.register(Person, PersonAdmin)
+admin.site.register(Invitation, InvitationAdmin)
