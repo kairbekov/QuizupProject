@@ -425,9 +425,9 @@ def get_played_game_info(request):
     return JsonResponse(data=results)
 
 
-def generateQuestions(category):
+def generateQuestions():
     list = []
-    p = random.sample(Questions.objects.get(category_id=category), 5)
+    p = random.sample(Questions.objects.all(), 5)
     for i in p:
         tmp = {}
         tmp['id'] = i.id
@@ -827,6 +827,7 @@ def get_friends(request):
     results = {}
     error = {}
     list = []
+    msg = {}
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -842,6 +843,7 @@ def get_friends(request):
                 tmp['avatar'] = person.avatar
                 tmp['total_points'] = person.total_points
                 tmp['user_id'] = person.user_id
+                list.append(tmp)
             elif i.user_id_2 == request.user.id:
                 user = User.objects.get(id=i.user_id_1)
                 person = Person.objects.get(user_id=i.user_id_1)
@@ -850,6 +852,10 @@ def get_friends(request):
                 tmp['avatar'] = person.avatar
                 tmp['total_points'] = person.total_points
                 tmp['user_id'] = person.user_id
-            list.append(tmp)
+                list.append(tmp)
+        if len(list) == 0:
+            msg['success'] = True
+            msg['text'] = "No any friends"
+            results['Message'] = msg
     results['Message'] = list
     return JsonResponse(data=results)
