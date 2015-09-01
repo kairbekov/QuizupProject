@@ -672,6 +672,8 @@ def game_result(request):
         tmp['opponent_name'] = User.objects.get(id=opponent).first_name
         tmp['category_name'] = Categories.objects.get(id=k.category_id).name
         tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
+        tmp['opponent_id'] = opponent
+        tmp['category_id'] = k.category_id
         if k.game_status == 3:
             tmp['success'] = False
             tmp['text'] = "The second player doesn't finish the game"
@@ -762,15 +764,15 @@ def login_social_network(request):
                 ranking.save()
             user = authenticate(username="fb"+id_fb, password="123")
             login(request, user)
-        list = json.loads(friends)
-        for i in list['friends']:
-            friend = authenticate(username="fb"+str(i), password="123")
-            if friend is not None:
-                try:
-                    friendship = Friends.objects.get((Q(user_id_1=user.id) & Q(user_id_2=friend.id)) | (Q(user_id_1=friend.id) & Q(user_id_2=user.id)))
-                except Friends.DoesNotExist:
-                    friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
-                    friendship.save()
+        # list = json.loads(friends)
+        # for i in list['friends']:
+        #     friend = authenticate(username="fb"+str(i), password="123")
+        #     if friend is not None:
+        #         try:
+        #             friendship = Friends.objects.get((Q(user_id_1=user.id) & Q(user_id_2=friend.id)) | (Q(user_id_1=friend.id) & Q(user_id_2=user.id)))
+        #         except Friends.DoesNotExist:
+        #             friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
+        #             friendship.save()
     elif id_vk != '0':
         try:
             user_social = Person.objects.get(vk_id=id_vk)
@@ -787,15 +789,15 @@ def login_social_network(request):
             user = authenticate(username="vk"+id_vk, password="123")
             login(request, user)
 
-        list = json.loads(friends)
-        for i in list['friends']:
-            friend = authenticate(username="vk"+str(i), password="123")
-            if friend is not None:
-                try:
-                    friendship = Friends.objects.get((Q(user_id_1=user.id) & Q(user_id_2=friend.id)) | (Q(user_id_1=friend.id) & Q(user_id_2=user.id)))
-                except Friends.DoesNotExist:
-                    friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
-                    friendship.save()
+        # list = json.loads(friends)
+        # for i in list['friends']:
+        #     friend = authenticate(username="vk"+str(i), password="123")
+        #     if friend is not None:
+        #         try:
+        #             friendship = Friends.objects.get((Q(user_id_1=user.id) & Q(user_id_2=friend.id)) | (Q(user_id_1=friend.id) & Q(user_id_2=user.id)))
+        #         except Friends.DoesNotExist:
+        #             friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
+        #             friendship.save()
     tmp['success'] = True
     tmp['text'] = "good"
     results['Message'] = tmp
@@ -858,4 +860,28 @@ def get_friends(request):
             msg['text'] = "No any friends"
             results['Message'] = msg
     results['Message'] = list
+    return JsonResponse(data=results)
+
+def i_want_to_play_with_friend(request):
+    results = {}
+    error = {}
+    tmp = {}
+    friend_id = request.POST['friend_id']
+    category_id = request.POST['category_id']
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+        user_answer_list_1.save()
+        user_answer_list_2 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+        user_answer_list_2.save()
+        game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
+        game.save()
+        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now())
+        gameInfo.save()
+        tmp['success'] = True
+        tmp['text'] = "You invite your friend"
+        results['Message'] = tmp
     return JsonResponse(data=results)
