@@ -531,7 +531,7 @@ def add_to_pool(request):
                     gI.game_status = 2
                     gI.save()
                     isOpponent = 1
-                    questions = generateQuestions(category_id)
+                    questions = generateQuestions()
                     tmp['success'] = True
                     tmp['game_id'] = gI.game_id
                     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
@@ -862,12 +862,15 @@ def get_friends(request):
     results['Message'] = list
     return JsonResponse(data=results)
 
+@csrf_exempt
 def i_want_to_play_with_friend(request):
     results = {}
     error = {}
     tmp = {}
     friend_id = request.POST['friend_id']
     category_id = request.POST['category_id']
+    category_id = int(category_id)
+    friend_id = int(friend_id)
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -883,5 +886,31 @@ def i_want_to_play_with_friend(request):
         gameInfo.save()
         tmp['success'] = True
         tmp['text'] = "You invite your friend"
+        results['Message'] = tmp
+    return JsonResponse(data=results)
+
+@csrf_exempt
+def who_challenge_me(request):
+    results = {}
+    error = {}
+    tmp = {}
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        gameInfo = None
+        for i in GameInfo.objects.all():
+            if i.user_id_2==request.user.id:
+                gameInfo = i
+        if gameInfo != None:
+            user = User.objects.get(id=gameInfo.user_id_1)
+            tmp['full_name'] = user.first_name + user.last_name
+            tmp['category_name'] = Categories.objects.get(id=gameInfo.category_id)
+            tmp['success'] = True
+            tmp['text'] = "You invite your friend"
+        else:
+            tmp['success'] = False
+            tmp['text'] = "No challenge for you"
         results['Message'] = tmp
     return JsonResponse(data=results)

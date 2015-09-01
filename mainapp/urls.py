@@ -41,6 +41,7 @@ urlpatterns = [
     url(r'^getfriends/', get_friends, name='get_friends'),
 
     url(r'^iwanttoplaywithfriend/', i_want_to_play_with_friend, name='i_want_to_play_with_friend'),
+    url(r'^whochallengeme/', who_challenge_me, name='who_challenge_me'),
 
     # Script for reading from file
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
