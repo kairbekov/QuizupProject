@@ -966,5 +966,13 @@ def answer_to_challenge(request):
             tmp['opponent_avatar'] = Person.objects.get(user_id=game.user_id_1).avatar
             tmp['opponent_points'] = Person.objects.get(user_id=game.user_id_1).total_points
             tmp['questions'] = questions
+            gameInfo.game_status = 2
+            gameInfo.save()
+            game.question_id_1 = questions[0]['id']
+            game.question_id_2 = questions[1]['id']
+            game.question_id_3 = questions[2]['id']
+            game.question_id_4 = questions[3]['id']
+            game.question_id_5 = questions[4]['id']
+            game.save()
         results['Message'] = tmp
     return JsonResponse(data=results)
