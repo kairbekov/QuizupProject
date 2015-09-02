@@ -19,7 +19,7 @@ class FriendsAdmin(admin.ModelAdmin):
     list_display = ('user_id_1', 'user_id_2')
 
 class GameInfoAdmin(admin.ModelAdmin):
-    list_display = ('user_id_1', 'user_id_2', 'game_id', 'category_id', 'game_status', 'point_1', 'point_2')
+    list_display = ('user_id_1', 'user_id_2', 'game_id', 'category_id', 'game_status', 'point_1', 'point_2', 'date')
 
 class GameAdmin(admin.ModelAdmin):
     list_display = ('question_id_1', 'question_id_2', 'question_id_3', 'question_id_4', 'question_id_5', 'user1_answer_id', 'user2_answer_id')

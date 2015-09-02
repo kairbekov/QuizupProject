@@ -370,7 +370,7 @@ def get_played_games_list(request):
             games_list = {}
             games_list['opponent_name'] = opponent.first_name
             games_list['avatar'] = Person.objects.get(user_id=opponent.id).avatar
-            games_list['date'] = datetime.datetime.now()
+            games_list['date'] = (i.date).strftime("%Y-%m-%d %H:%M")
             status = " "
             if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
                 status = "Win"
@@ -427,7 +427,14 @@ def get_played_game_info(request):
 
 def generateQuestions(category_id):
     list = []
-    p = random.sample(Questions.objects.all(), 5)
+    sample = []
+    try:
+        for i in Questions.objects.all():
+            if i.category_id==category_id:
+                sample.append(i)
+    except Questions.DoesNotExist:
+        sample = Questions.objects.all()
+    p = random.sample(sample, 5)
     for i in p:
         tmp = {}
         tmp['id'] = i.id
@@ -668,7 +675,7 @@ def game_result(request):
             opponent = k.user_id_2
             tmp['opponent_points'] = k.point_2
             tmp['my_points'] = k.point_1
-        tmp['date'] = k.date
+        tmp['date'] = (k.date).strftime("%Y-%m-%d %H:%M")
         tmp['opponent_name'] = User.objects.get(id=opponent).first_name
         tmp['category_name'] = Categories.objects.get(id=k.category_id).name
         tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
@@ -1010,8 +1017,10 @@ def check_challenge_status(request):
             tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
             tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
             tmp['questions'] = questions
+            invitation.delete()
         else:
             tmp['success'] = False
             tmp['text'] = "You have no challenge"
+
         results['Message'] = tmp
     return JsonResponse(data=results)
