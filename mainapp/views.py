@@ -564,7 +564,7 @@ def add_to_pool(request):
             user_answer_list_2.save()
             game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
             game.save()
-            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now())
+            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() )
             gameInfo.save()
             pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank)
             pool.save()
