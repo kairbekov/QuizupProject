@@ -80,7 +80,9 @@ def registration(request):
             ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
             ranking.save()
         tmp['Success'] = True
-        tmp['Text'] = " "
+        tmp['Text'] = "Registred"
+    else:
+        tmp['Text'] = "Please, set all the fields"
     results['Message'] = tmp
     return JsonResponse(data=results)
 
@@ -754,6 +756,7 @@ def login_social_network(request):
     avatar = request.POST['avatar']
     city = request.POST['city']
     id_vk = request.POST['id_vk']
+    id_vk = request.POST['id_vk']
     id_fb = request.POST['id_fb']
     friends = request.POST['friends']
     if id_fb != '0':
@@ -1024,3 +1027,51 @@ def check_challenge_status(request):
 
         results['Message'] = tmp
     return JsonResponse(data=results)
+
+@csrf_exempt
+def get_top_20(request):
+    results = {}
+    error = {}
+    list = []
+    isYou = False
+    isOk = False
+    position = 1
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        for i in Person.objects.order_by('-total_points'):
+            tmp = {}
+            if i.id == request.user.id:
+                isYou = True
+            else:
+                isYou = False
+            if len(list) < 20 or (len(list) >= 20 and isYou == True):
+                user = User.objects.get(id=i.user_id)
+                tmp['id'] = i.id
+                tmp['first_name'] = user.first_name
+                tmp['last_name'] = user.last_name
+                tmp['avatar'] = i.avatar
+                tmp['total_points'] = i.total_points
+                tmp['isYou'] = isYou
+                tmp['position'] = position
+                list.append(tmp)
+            position += 1
+    results['Message'] = list
+    return JsonResponse(data=results)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^getmyrank/', get_my_rank, name='get_my_rank'),
     url(r'^gameresult/', game_result, name='game_result'),
     url(r'^killsearch/', kill_search, name='kill_search'),
-    url(r'^getranking/', get_ranking, name='get_ranking'),
+    url(r'^getranking/', get_top_20, name='get_top_20'),
     url(r'^getfriends/', get_friends, name='get_friends'),
 
     #4 methods for rematch and invitation
