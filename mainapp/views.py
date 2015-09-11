@@ -810,13 +810,11 @@ def login_social_network(request):
             try:
                 friend = User.objects.get(username="vk"+str(i))
                 try:
-                    friendship = Friends.objects.get(user_id_1=friend.id, user_id_2=user.id)
-                    if friendship is None:
-                        friendship = Friends.objects.get(user_id_1=user.id, user_id_2=friend.id)
+                    friendship = Friends.objects.get( (Q(user_id_1=friend.id) & Q(user_id_2=user.id)) | (Q(user_id_1=user.id) & Q(user_id_2=friend.id)) )
                 except Friends.DoesNotExist:
                     friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
                     friendship.save()
-            except:
+            except User.DoesNotExist:
                 pass
 
     tmp['success'] = True
@@ -1074,7 +1072,7 @@ def get_top_20(request):
 
 @csrf_exempt
 def read_file(request):
-    path = 'C:/Users/Student/Desktop/ent.txt'
+    path = 'C:/Users/Student/Desktop/geo.txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()
@@ -1089,18 +1087,18 @@ def read_file(request):
         if cnt == 1:
             t['question'] = i[i.find('. ')+2:]
         elif cnt == 2:
-            t['answer_1'] = i[i.find(') ')+2:-4]
+            t['answer_1'] = i[i.find(') ')+2:-2]
         elif cnt == 3:
-            t['answer_2'] = i[i.find(') ')+2:-4]
+            t['answer_2'] = i[i.find(') ')+2:-2]
         elif cnt == 4:
-            t['answer_3'] = i[i.find(') ')+2:-4]
+            t['answer_3'] = i[i.find(') ')+2:-2]
         elif cnt == 5:
-            t['answer_4'] = i[i.find(') ')+2:-4]
+            t['answer_4'] = i[i.find(') ')+2:-2]
         elif cnt == 6:
             cnt = 0
             if correct == 6:
                 t['correct_answer'] = 4
-                t['answer_4'] = i[i.find(') ')+2:-4]
+                t['answer_4'] = i[i.find(') ')+2:-2]
                 correct = 0
             list.append(t)
             t = {}
@@ -1110,7 +1108,47 @@ def read_file(request):
     f.close()
     return JsonResponse(data=tmp)
 
-
+@csrf_exempt
+def from_file_to_db(request):
+    category = request.POST['category_id']
+    path = 'C:/Users/Student/Desktop/kaz_his.txt'
+    f = codecs.open(path, 'r', encoding='utf8')
+    #num_lines = sum(1 for line in f)
+    lines = f.readlines()
+    list = []
+    cnt = 1
+    correct = -1
+    t = {}
+    for i in lines:
+        if i[0] == '+':
+            t['correct_answer'] = cnt - 1
+            correct = cnt
+        if cnt == 1:
+            t['question'] = i[i.find('. ')+2:]
+        elif cnt == 2:
+            t['answer_1'] = i[i.find(') ')+2:-2]
+        elif cnt == 3:
+            t['answer_2'] = i[i.find(') ')+2:-2]
+        elif cnt == 4:
+            t['answer_3'] = i[i.find(') ')+2:-2]
+        elif cnt == 5:
+            t['answer_4'] = i[i.find(') ')+2:-2]
+        elif cnt == 6:
+            cnt = 0
+            if correct == 6:
+                t['correct_answer'] = 4
+                t['answer_4'] = i[i.find(') ')+2:-2]
+                correct = 0
+            print t['question']
+            question = Questions(category_id=category, question_text=t['question'], answer_1=t['answer_1'], answer_2=t['answer_2'], answer_3=t['answer_3'], answer_4=t['answer_4'], correct_answer=t['correct_answer'], level=1)
+            question.save()
+            list.append(t)
+            t = {}
+        cnt += 1
+    tmp = {}
+    tmp['text'] = list
+    f.close()
+    return JsonResponse(data=tmp)
 
 
 

@@ -51,7 +51,7 @@ urlpatterns = [
     # Script for reading from file
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
     url(r'^readfile/', read_file, name='read_file'),
-
+    url(r'^fromfiletodb/', from_file_to_db, name='from_file_to_db'),
 
     # Vk and Fb methods
     url(r'^login_sn/', login_social_network, name='login_social_network'),
