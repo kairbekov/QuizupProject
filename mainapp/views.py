@@ -570,7 +570,7 @@ def add_to_pool(request):
             user_answer_list_2.save()
             game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
             game.save()
-            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() )
+            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6))
             gameInfo.save()
             pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank)
             pool.save()
@@ -901,7 +901,7 @@ def i_want_to_play_with_friend(request):
         user_answer_list_2.save()
         game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
         game.save()
-        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now())
+        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6))
         gameInfo.save()
         invitation = Invitation(game_id=game.id, challenger_id=request.user.id, status=0)
         invitation.save()
@@ -1072,7 +1072,7 @@ def get_top_20(request):
 
 @csrf_exempt
 def read_file(request):
-    path = 'C:/Users/Student/Desktop/geo.txt'
+    path = 'C:/Users/Student/Desktop/bio.txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()
@@ -1111,7 +1111,7 @@ def read_file(request):
 @csrf_exempt
 def from_file_to_db(request):
     category = request.POST['category_id']
-    path = 'C:/Users/Student/Desktop/kaz_his.txt'
+    path = 'C:/Users/Student/Desktop/bio.txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()
@@ -1139,7 +1139,7 @@ def from_file_to_db(request):
                 t['correct_answer'] = 4
                 t['answer_4'] = i[i.find(') ')+2:-2]
                 correct = 0
-            print t['question']
+            #print t['question']
             question = Questions(category_id=category, question_text=t['question'], answer_1=t['answer_1'], answer_2=t['answer_2'], answer_3=t['answer_3'], answer_4=t['answer_4'], correct_answer=t['correct_answer'], level=1)
             question.save()
             list.append(t)
