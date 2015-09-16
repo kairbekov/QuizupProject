@@ -23,6 +23,7 @@ class Pool(models.Model):
     category_id = models.IntegerField()
     user_id = models.IntegerField()
     rank = models.IntegerField()
+    game_info_id = models.IntegerField()
 
 class Ranking(models.Model):
     user_id = models.IntegerField()

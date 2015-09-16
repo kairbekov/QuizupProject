@@ -369,7 +369,7 @@ def get_played_games_list(request):
         error['Text'] = "Please, login!"
         results['Message'] = error
     else:
-        for i in GameInfo.objects.filter((Q(user_id_1=request.user.id) | Q(user_id_2=request.user.id) & Q(game_status=4))):
+        for i in GameInfo.objects.filter((Q(user_id_1=request.user.id) | Q(user_id_2=request.user.id)) & Q(game_status=4)):
             opponent = User.objects.get(id=i.user_id_1)
             if i.user_id_1 == request.user.id:
                 opponent = User.objects.get(id=i.user_id_2)
@@ -388,7 +388,9 @@ def get_played_games_list(request):
             games_list['category_name'] = Categories.objects.get(id=i.category_id).name
             games_list['game_id'] = i.game_id
             list.append(games_list)
-        results['Message'] = list
+            results['Message'] = list
+        if len(list) == 0:
+            results['Message'] = "No any games!"
     return JsonResponse(data=results)
 
 
@@ -503,7 +505,7 @@ def add_to_pool(request):
         # check dat user in the pool
         for i in Pool.objects.all():
             if i.user_id == request.user.id and i.category_id == category_id:
-                gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=request.user.id), Q(game_status='1') | Q(game_status='2'))
+                gI = GameInfo.objects.get(id=i.game_info_id)
                 inPool = 1
                 if gI.user_id_2 != 0 and int(gI.game_status) == 2:
                     opponent = gI.user_id_2
@@ -538,7 +540,7 @@ def add_to_pool(request):
             for i in Pool.objects.all():
                 if i.category_id == category_id and i.user_id != request.user.id:
                     opponent = i.user_id
-                    gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=opponent), Q(game_status='1') | Q(game_status='2'))
+                    gI = GameInfo.objects.get(id=i.game_info_id)
                     #print type(gI.game_status)
                     gI.user_id_2 = request.user.id
                     gI.game_status = 2
@@ -572,13 +574,12 @@ def add_to_pool(request):
             game.save()
             gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6))
             gameInfo.save()
-            pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank)
+            pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank, game_info_id=gameInfo.id)
             pool.save()
             tmp['success'] = False
             tmp['text'] = "Added to pool"
         results['Message'] = tmp
         return JsonResponse(data=results)
-
 
 @csrf_exempt
 def game_end(request):
@@ -631,7 +632,7 @@ def game_end(request):
         answerList.save()
         gameInfo.save()
         game.save()
-        pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1)
+        pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1, game_info_id=gameInfo.id)
         if pool:
             pool.delete()
         tmp = {}
@@ -708,7 +709,7 @@ def kill_search(request):
         results['Message'] = error
     else:
         k = Pool.objects.get(user_id=request.user.id, category_id=category_id)
-        gI = GameInfo.objects.get(Q(category_id=category_id), Q(user_id_1=request.user.id), (Q(game_status=1) | Q(game_status=2)))
+        gI = GameInfo.objects.get(id=k.game_info_id)
         if int(gI.game_status) == 2:
             opponent = gI.user_id_2
             game = Game.objects.get(id=gI.game_id)
@@ -749,7 +750,6 @@ def kill_search(request):
             tmp['text'] = "Game Deleted"
         results['Message'] = tmp
     return JsonResponse(data=results)
-
 
 @csrf_exempt
 def login_social_network(request):
