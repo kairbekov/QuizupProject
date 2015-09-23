@@ -359,6 +359,9 @@ def get_my_rank_by_category(request):
         results['Message'] = ranking
     return JsonResponse(data=results)
 
+# Win = 1
+# Draw = 0
+# Lose = -1
 @csrf_exempt
 def get_played_games_list(request):
     results = {}
@@ -369,7 +372,7 @@ def get_played_games_list(request):
         error['Text'] = "Please, login!"
         results['Message'] = error
     else:
-        for i in GameInfo.objects.filter((Q(user_id_1=request.user.id) | Q(user_id_2=request.user.id)) & Q(game_status=4)):
+        for i in GameInfo.objects.filter((Q(user_id_1=request.user.id) | Q(user_id_2=request.user.id)) & Q(game_status=4)).order_by('-date'):
             opponent = User.objects.get(id=i.user_id_1)
             if i.user_id_1 == request.user.id:
                 opponent = User.objects.get(id=i.user_id_2)
@@ -379,16 +382,16 @@ def get_played_games_list(request):
             games_list['date'] = (i.date).strftime("%Y-%m-%d %H:%M")
             status = " "
             if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
-                status = "Win"
+                status = 1
             elif (request.user.id == i.user_id_1 and int(i.point_1) < int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) > int(i.point_2)):
-                status = "Lose"
+                status = -1
             else:
-                status = "Draw"
+                status = 0
             games_list['status'] = status
             games_list['category_name'] = Categories.objects.get(id=i.category_id).name
             games_list['game_id'] = i.game_id
             list.append(games_list)
-            results['Message'] = list
+        results['Message'] = list
         if len(list) == 0:
             results['Message'] = "No any games!"
     return JsonResponse(data=results)
@@ -674,6 +677,7 @@ def game_result(request):
         results['Message'] = error
     else:
         tmp = {}
+
         k = GameInfo.objects.get(game_id=game_id)
         opponent = k.user_id_1
         tmp['opponent_points'] = k.point_1

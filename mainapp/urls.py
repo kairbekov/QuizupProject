@@ -27,7 +27,7 @@ urlpatterns = [
 
     url(r'^gameinfo/', game_info, name='game_info'),
 
-    # Saken's methods
+    # Android API methods
     url(r'^getmyprofile/', get_my_profile, name='get_my_profile'),
     url(r'^getmycategorylist/', get_my_category_list, name='get_my_category_list'),
     url(r'^getmyrankbycategory/', get_my_rank_by_category, name='get_my_rank_by_category'),
