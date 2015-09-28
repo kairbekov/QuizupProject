@@ -1154,12 +1154,52 @@ def from_file_to_db(request):
     f.close()
     return JsonResponse(data=tmp)
 
+@csrf_exempt
+def play_with_bot(request):
+    results = {}
+    error = {}
+    list = []
+    position = 1
+    category_id = request.POST['category_id']
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['Message'] = error
+    else:
+        tmp = {}
+        question_list = generateQuestions(category_id=category_id)
+        user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
+        user_answer_list_1.save()
+        bot = bot_simulation(questions=question_list)
+        pts_sum = bot[0]['pts']+bot[1]['pts']+bot[2]['pts']+bot[3]['pts']+bot[4]['pts']
+        user_answer_list_2 = UserAnswerList(user_answer_1=bot[0]['ans'], user_answer_2=bot[1]['ans'], user_answer_3=bot[2]['ans'], user_answer_4=bot[3]['ans'], user_answer_5=bot[4]['ans'], point_1=bot[0]['pts'], point_2=bot[1]['pts'], point_3=bot[2]['pts'], point_4=bot[3]['pts'], point_5=bot[4]['pts'])
+        user_answer_list_2.save()
+        game = Game(question_id_1=list[0]['id'], question_id_2=list[1]['id'], question_id_3=list[2]['id'], question_id_4=list[3]['id'], question_id_5=list[4]['id'], user1_answer_id=user_answer_list_1, user2_answer_id=user_answer_list_2)
+        game.save()
+        gameInfo = GameInfo(user_id_1=request.user, user_id_2=1, game_id=game.id, category_id=category_id, game_status=3, point_1=0, point_2=pts_sum, date=datetime.datetime.now() + datetime.timedelta(hours=6))
+        gameInfo.save()
+        tmp['success'] = True
+        tmp['game_id'] = game.id
+        tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
+        tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
+        tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
+        tmp['questions'] = question_list
+        results['Message'] = tmp
+    return JsonResponse(data=results)
 
 
-
-
-
-
+# random answer to the questions
+def bot_simulation(questions):
+    answer_list = []
+    for i in range(0,5):
+        question = Questions.objects.get(id=questions[i]['id'])
+        tmp = {}
+        tmp['ans'] = random.randint(1,4)
+        tmp['pts'] = 0
+        if tmp['ans'] == question.correct_answer:
+            tmp['pts'] = random.randint(0,10)
+        answer_list.append(tmp)
+    return answer_list
 
 
 

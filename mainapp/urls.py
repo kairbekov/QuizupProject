@@ -56,5 +56,7 @@ urlpatterns = [
     # Vk and Fb methods
     url(r'^login_sn/', login_social_network, name='login_social_network'),
 
+    # play with bot
+    url(r'^playwithbot/', play_with_bot, name='play_with_bot'),
 
 ]
