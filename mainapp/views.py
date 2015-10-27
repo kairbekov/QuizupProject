@@ -1,9 +1,12 @@
+import base64
 import csv
 import os
 import datetime
 import cStringIO
 import codecs
 import random
+import urllib
+from PIL import Image
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.serializers import json
@@ -17,6 +20,7 @@ from sets import Set
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import sys
+import requests
 import xlrd
 from mainapp.models import *
 
@@ -307,10 +311,12 @@ def get_my_profile(request):
         profile = {}
         tmp = User.objects.get(id=request.user.id)
         person = Person.objects.get(user_id=tmp.id)
+        profile['success'] = True
+        profile['text'] = "Your profile"
         profile['id'] = tmp.id
         profile['first_name'] = tmp.first_name
         profile['last_name'] = tmp.last_name
-        profile['avatar'] = person.avatar
+        profile['avatar'] = convertImgToString(person.avatar)
         profile['total_points'] = person.total_points
         results['Message'] = profile
     return JsonResponse(data=results)
@@ -353,6 +359,8 @@ def get_my_rank_by_category(request):
     else:
         ranking = {}
         tmp = Ranking.objects.get(user_id=request.user.id, category_id=category_id)
+        ranking['success'] = True
+        ranking['text'] = "My rank by category"
         ranking['category_name'] = Categories.objects.get(id=tmp.category_id).name
         ranking['category_point'] = tmp.rank
         ranking['category_id'] = Categories.objects.get(id=tmp.category_id).id
@@ -378,7 +386,7 @@ def get_played_games_list(request):
                 opponent = User.objects.get(id=i.user_id_2)
             games_list = {}
             games_list['opponent_name'] = opponent.first_name
-            games_list['avatar'] = Person.objects.get(user_id=opponent.id).avatar
+            games_list['avatar'] = convertImgToString(Person.objects.get(user_id=opponent.id).avatar)
             games_list['date'] = (i.date).strftime("%Y-%m-%d %H:%M")
             status = " "
             if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
@@ -498,8 +506,8 @@ def add_to_pool(request):
     #       a) Esli est` sopernik otpravlyem dannie
     #       b) Esli netu sopernika dobavlyem v Pool
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
+        error['success'] = False
+        error['text'] = "Please, login!"
         results['Message'] = error
     else:
         rank = Ranking.objects.get(user_id=request.user.id,category_id=category_id).rank
@@ -532,9 +540,10 @@ def add_to_pool(request):
                         obj['correct_answer'] = k.correct_answer
                         questions.append(obj)
                     tmp['success'] = True
+                    tmp['text'] = "Your opponent is found"
                     tmp['game_id'] = gI.game_id
                     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-                    tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+                    tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     isOpponent = 1
@@ -551,9 +560,10 @@ def add_to_pool(request):
                     isOpponent = 1
                     questions = generateQuestions(category_id=category_id)
                     tmp['success'] = True
+                    tmp['text'] = "Your opponent is found"
                     tmp['game_id'] = gI.game_id
                     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-                    tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+                    tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     game = Game.objects.get(id=gI.game_id)
@@ -631,7 +641,10 @@ def game_end(request):
         answerList.point_3 = point_3
         answerList.point_4 = point_4
         answerList.point_5 = point_5
-        gameInfo.game_status = int(gameInfo.game_status) + 1
+        if  request.user.id == gameInfo.user_id_2 and gameInfo.game_status < 2:
+            gameInfo.game_status = int(gameInfo.game_status) + 3
+        else:
+            gameInfo.game_status = int(gameInfo.game_status) + 1
         answerList.save()
         gameInfo.save()
         game.save()
@@ -689,10 +702,10 @@ def game_result(request):
         tmp['date'] = (k.date).strftime("%Y-%m-%d %H:%M")
         tmp['opponent_name'] = User.objects.get(id=opponent).first_name
         tmp['category_name'] = Categories.objects.get(id=k.category_id).name
-        tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
+        tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
         tmp['opponent_id'] = opponent
         tmp['category_id'] = k.category_id
-        if k.game_status == 3:
+        if k.game_status != 4:
             tmp['success'] = False
             tmp['text'] = "The second player doesn't finish the game"
         else:
@@ -738,7 +751,7 @@ def kill_search(request):
             tmp['success'] = True
             tmp['game_id'] = gI.game_id
             tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-            tmp['opponent_avatar'] = "http://cdn.indiewire.com/dims4/INDIEWIRE/2f993ce/2147483647/thumbnail/120x80%3E/quality/75/?url=http%3A%2F%2Fd1oi7t5trwfj5d.cloudfront.net%2F91%2Fa9%2F5a2c1503496da25094b88e9eda5f%2Favatar.jpeg"
+            tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
             tmp['opponent_points'] = Ranking.objects.get(user_id=opponent, category_id=category_id).rank
             tmp['questions'] = questions
         else:
@@ -786,9 +799,7 @@ def login_social_network(request):
             try:
                 friend = User.objects.get(username="fb"+str(i))
                 try:
-                    friendship = Friends.objects.get(user_id_1=friend.id, user_id_2=user.id)
-                    if friendship is None:
-                        friendship = Friends.objects.get(user_id_1=user.id, user_id_2=friend.id)
+                    friendship = Friends.objects.get( (Q(user_id_1=friend.id) & Q(user_id_2=user.id)) | (Q(user_id_1=user.id) & Q(user_id_2=friend.id)) )
                 except Friends.DoesNotExist:
                     friendship = Friends(user_id_1=user.id, user_id_2=friend.id)
                     friendship.save()
@@ -842,7 +853,7 @@ def get_ranking(request):
             tmp['total_points'] = i.total_points
             tmp['first_name'] = user.first_name
             tmp['last_name'] = user.last_name
-            tmp['avatar'] = i.avatar
+            tmp['avatar'] = convertImgToString(i.avatar)
             list.append(tmp)
     results['Message'] = list
     return JsonResponse(data=results)
@@ -865,7 +876,7 @@ def get_friends(request):
                 person = Person.objects.get(user_id=i.user_id_2)
                 tmp['first_name'] = user.first_name
                 tmp['last_name'] = user.last_name
-                tmp['avatar'] = person.avatar
+                tmp['avatar'] = convertImgToString(person.avatar)
                 tmp['total_points'] = person.total_points
                 tmp['user_id'] = person.user_id
                 list.append(tmp)
@@ -874,10 +885,12 @@ def get_friends(request):
                 person = Person.objects.get(user_id=i.user_id_1)
                 tmp['first_name'] = user.first_name
                 tmp['last_name'] = user.last_name
-                tmp['avatar'] = person.avatar
+                tmp['avatar'] = convertImgToString(person.avatar)
                 tmp['total_points'] = person.total_points
                 tmp['user_id'] = person.user_id
                 list.append(tmp)
+        list = sorted(list, key=lambda i: i['total_points'])
+        list.reverse()
         if len(list) == 0:
             msg['success'] = True
             msg['text'] = "No any friends"
@@ -899,6 +912,7 @@ def i_want_to_play_with_friend(request):
         error['text'] = "Please, login!"
         results['Message'] = error
     else:
+        tmp = {}
         user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
         user_answer_list_1.save()
         user_answer_list_2 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
@@ -907,8 +921,21 @@ def i_want_to_play_with_friend(request):
         game.save()
         gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6))
         gameInfo.save()
-        invitation = Invitation(game_id=game.id, challenger_id=request.user.id, status=0)
-        invitation.save()
+
+        list = generateQuestions(category_id=gameInfo.category_id)
+        tmp['game_id'] = game.id
+        tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
+        tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_2).avatar)
+        tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
+        tmp['questions'] = list
+        gameInfo.game_status = 0
+        gameInfo.save()
+        game.question_id_1 = list[0]['id']
+        game.question_id_2 = list[1]['id']
+        game.question_id_3 = list[2]['id']
+        game.question_id_4 = list[3]['id']
+        game.question_id_5 = list[4]['id']
+        game.save()
         tmp['success'] = True
         tmp['text'] = "You invite your friend"
         results['Message'] = tmp
@@ -926,7 +953,7 @@ def who_challenge_me(request):
     else:
         gameInfo = None
         for i in GameInfo.objects.all():
-            if i.user_id_2==request.user.id and i.game_status == 1:
+            if i.user_id_2==request.user.id and i.game_status < 2:
                 gameInfo = i
         if gameInfo != None:
             user = User.objects.get(id=gameInfo.user_id_1)
@@ -946,6 +973,8 @@ def answer_to_challenge(request):
     results = {}
     error = {}
     tmp = {}
+    # answer = 1 - NO, wan't to play
+    # answer = 2 - Yes, lets play
     answer = request.POST['answer']
     game_id = request.POST['game_id']
     answer = int(answer)
@@ -955,59 +984,24 @@ def answer_to_challenge(request):
         error['text'] = "Please, login!"
         results['Message'] = error
     else:
-        invitation = Invitation.objects.get(game_id=game_id)
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
         user_answer_list_1 = UserAnswerList.objects.get(id=game.user1_answer_id)
         user_answer_list_2 = UserAnswerList.objects.get(id=game.user2_answer_id)
         if answer == 1:
-            invitation.status = 1
             user_answer_list_2.delete()
             user_answer_list_1.delete()
             game.delete()
             gameInfo.delete()
-            invitation.delete()
             tmp['success'] = False
             tmp['text'] = "Game and other deleted"
         elif answer == 2:
-            list = generateQuestions(category_id=gameInfo.category_id)
             tmp['success'] = True
             tmp['game_id'] = game.id
             tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_1).first_name
-            tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_1).avatar
+            tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_1).avatar)
             tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_1).total_points
-            tmp['questions'] = list
-            invitation.status = 2
-            invitation.save()
-            gameInfo.game_status = 2
-            gameInfo.save()
-            game.question_id_1 = list[0]['id']
-            game.question_id_2 = list[1]['id']
-            game.question_id_3 = list[2]['id']
-            game.question_id_4 = list[3]['id']
-            game.question_id_5 = list[4]['id']
-            game.save()
-        results['Message'] = tmp
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def check_challenge_status(request):
-    results = {}
-    error = {}
-    tmp = {}
-    if request.user.is_authenticated() == 0:
-        error['success'] = False
-        error['text'] = "Please, login!"
-        results['Message'] = error
-    else:
-        invitation = None
-        for i in Invitation.objects.all():
-            if i.status == 2 and i.challenger_id == request.user.id:
-                invitation = i
-                break
-        if invitation is not None:
-            gameInfo = GameInfo.objects.get(game_id=invitation.game_id)
-            game = Game.objects.get(id=invitation.game_id)
+            tmp['text'] = "gg wp"
             questions = []
             list = []
             list.append(game.question_id_1)
@@ -1026,18 +1020,7 @@ def check_challenge_status(request):
                 obj['answer_4'] = k.answer_4
                 obj['correct_answer'] = k.correct_answer
                 questions.append(obj)
-            tmp['success'] = True
-            tmp['text'] = "Your friend accept your challenge"
-            tmp['game_id'] = game.id
-            tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
-            tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
-            tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
             tmp['questions'] = questions
-            invitation.delete()
-        else:
-            tmp['success'] = False
-            tmp['text'] = "You have no challenge"
-
         results['Message'] = tmp
     return JsonResponse(data=results)
 
@@ -1065,7 +1048,7 @@ def get_top_20(request):
                 tmp['id'] = i.id
                 tmp['first_name'] = user.first_name
                 tmp['last_name'] = user.last_name
-                tmp['avatar'] = i.avatar
+                tmp['avatar'] = convertImgToString(i.avatar)
                 tmp['total_points'] = i.total_points
                 tmp['isYou'] = isYou
                 tmp['position'] = position
@@ -1180,7 +1163,7 @@ def play_with_bot(request):
         tmp['success'] = True
         tmp['game_id'] = game.id
         tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
-        tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
+        tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_2).avatar)
         tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
         tmp['questions'] = list
         results['Message'] = tmp
@@ -1230,4 +1213,13 @@ def getFactor(pts):
         k = 5
     return k
 
+@csrf_exempt
+def clear(request):
+    tmp = {}
+    tmp['ok'] = "true"
+    return JsonResponse(data=tmp)
 
+def convertImgToString(path):
+    file = cStringIO.StringIO(urllib.urlopen(path).read())
+    stringFormat = base64.b64encode(file.read())
+    return stringFormat

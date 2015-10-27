@@ -9,23 +9,23 @@ urlpatterns = [
     url(r'^logout/', logout_view),
     url(r'^registration/', registration),
 
-    url(r'^users/', users_list, name='user_list'),
+    #url(r'^users/', users_list, name='user_list'),
 
-    url(r'^categories/', category_list, name='category_list'),
-    url(r'^addcategories/', add_category, name='add_category'),
-    url(r'^deletecategories/', delete_category, name='delete_category'),
+    #url(r'^categories/', category_list, name='category_list'),
+    #url(r'^addcategories/', add_category, name='add_category'),
+    #url(r'^deletecategories/', delete_category, name='delete_category'),
 
-    url(r'^questions/', question_list, name='question_list'),
-    url(r'^addquestion/', add_question, name='add_question'),
+    #url(r'^questions/', question_list, name='question_list'),
+    #url(r'^addquestion/', add_question, name='add_question'),
 
-    url(r'^pool/', pool, name='pool'),
+    #url(r'^pool/', pool, name='pool'),
     url(r'^addtopool/', add_to_pool, name='add_to_pool'),
 
-    url(r'^ranking/', rank_list, name='rank_list'),
+    #url(r'^ranking/', rank_list, name='rank_list'),
 
-    url(r'^friends/', friend_list, name='friend_list'),
+    #url(r'^friends/', friend_list, name='friend_list'),
 
-    url(r'^gameinfo/', game_info, name='game_info'),
+    #url(r'^gameinfo/', game_info, name='game_info'),
 
     # Android API methods
     url(r'^getmyprofile/', get_my_profile, name='get_my_profile'),
@@ -44,7 +44,6 @@ urlpatterns = [
     url(r'^iwanttoplaywithfriend/', i_want_to_play_with_friend, name='i_want_to_play_with_friend'),
     url(r'^whochallengeme/', who_challenge_me, name='who_challenge_me'),
     url(r'^answertochallenge/', answer_to_challenge, name='answer_to_challenge'),
-    url(r'^checkchallengestatus/', check_challenge_status, name='check_challenge_status'),
 
     #url(r'^generate/', generateQuestions(category_id=1), name='generate'),
 
@@ -58,5 +57,9 @@ urlpatterns = [
 
     # play with bot
     url(r'^playwithbot/', play_with_bot, name='play_with_bot'),
+
+    url(r'^clear/', clear, name='clear'),
+    #url(r'^test/', test, name='test'),
+
 
 ]
