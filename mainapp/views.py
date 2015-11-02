@@ -20,7 +20,6 @@ from sets import Set
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import sys
-import requests
 import xlrd
 from mainapp.models import *
 
@@ -621,9 +620,9 @@ def game_end(request):
         person = Person.objects.get(user_id=request.user.id)
         person.total_points = person.total_points + int(points)
         person.save()
-        ranking = Ranking.objects.get(user_id=request.user.id, category_id=gameInfo.category_id)
-        ranking.rank = ranking.rank + int(points)
-        ranking.save()
+        #ranking = Ranking.objects.get(user_id=request.user.id, category_id=gameInfo.category_id)
+        #ranking.rank = ranking.rank + int(points)
+        #ranking.save()
         answerList = UserAnswerList(id=game.user1_answer_id)
         if gameInfo.user_id_1 == request.user.id:
             gameInfo.point_1 = points
@@ -641,7 +640,7 @@ def game_end(request):
         answerList.point_3 = point_3
         answerList.point_4 = point_4
         answerList.point_5 = point_5
-        if  request.user.id == gameInfo.user_id_2 and gameInfo.game_status < 2:
+        if request.user.id == gameInfo.user_id_2 and gameInfo.game_status < 2:
             gameInfo.game_status = int(gameInfo.game_status) + 3
         else:
             gameInfo.game_status = int(gameInfo.game_status) + 1
@@ -749,6 +748,7 @@ def kill_search(request):
                 obj['correct_answer'] = q.correct_answer
                 questions.append(obj)
             tmp['success'] = True
+            tmp['text'] = "Your game is ready"
             tmp['game_id'] = gI.game_id
             tmp['opponent_name'] = User.objects.get(id=opponent).first_name
             tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
@@ -1192,9 +1192,20 @@ def calc_rating(user1, user2, pts1, pts2, winner):
         w = 0.5
     E1 = 1/(1+10^((pts2-pts1)/400))
     E2 = 1/(1+10^((pts1-pts2)/400))
-    R1 = pts1 + getFactor(pts=pts1)*(w-E1)
-    R2 = pts2 + getFactor(pts=pts2)*(1-w-E2)
-    return 0
+    R1 = getFactor(pts=pts1)*(w-E1)
+    R2 = getFactor(pts=pts2)*(1-w-E2)
+    tmp = {}
+    tmp['user1_pts'] = R1
+    tmp['user2_pts'] = R2
+    return tmp
+
+def ranking_update(user1, user2, R1, R2):
+    person1 = Person.objects.get(user_id=user1)
+    person2 = Person.objects.get(user_id=user2)
+    person1.total_points += R1
+    person2.total_points += R2
+    person1.save()
+    person2.save()
 
 # give coefficient for some pts
 def getFactor(pts):
@@ -1219,6 +1230,7 @@ def clear(request):
     tmp['ok'] = "true"
     return JsonResponse(data=tmp)
 
+#convert image format to stirng base64 format
 def convertImgToString(path):
     file = cStringIO.StringIO(urllib.urlopen(path).read())
     stringFormat = base64.b64encode(file.read())

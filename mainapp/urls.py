@@ -11,7 +11,7 @@ urlpatterns = [
 
     #url(r'^users/', users_list, name='user_list'),
 
-    #url(r'^categories/', category_list, name='category_list'),
+    url(r'^categories/', category_list, name='category_list'),
     #url(r'^addcategories/', add_category, name='add_category'),
     #url(r'^deletecategories/', delete_category, name='delete_category'),
 
@@ -21,9 +21,9 @@ urlpatterns = [
     #url(r'^pool/', pool, name='pool'),
     url(r'^addtopool/', add_to_pool, name='add_to_pool'),
 
-    #url(r'^ranking/', rank_list, name='rank_list'),
+    url(r'^ranking/', rank_list, name='rank_list'),
 
-    #url(r'^friends/', friend_list, name='friend_list'),
+    url(r'^friends/', friend_list, name='friend_list'),
 
     #url(r'^gameinfo/', game_info, name='game_info'),
 

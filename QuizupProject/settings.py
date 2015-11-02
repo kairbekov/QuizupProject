@@ -73,8 +73,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'EntalappDB',
         'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '',
+        'PASSWORD': 'QUCqx07GkW',
+        'HOST': 'mysql21760-env-3315080.j.dnr.kz',
         'PORT': '3306',
     }
 }

@@ -43,6 +43,8 @@ class GameInfo(models.Model):
     point_1 = models.IntegerField()
     point_2 = models.IntegerField()
     date = models.DateTimeField()
+    pts1_change = models.IntegerField()
+    pts2_change = models.IntegerField()
 
 class Game(models.Model):
     question_id_1 = models.IntegerField()
