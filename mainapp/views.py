@@ -16,10 +16,10 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from os import path
 from sets import Set
-# Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import sys
+import unicodedata
 import xlrd
 from mainapp.models import *
 
@@ -60,7 +60,6 @@ def logout_view(request):
     logout(request)
     return JsonResponse(data=results)
 
-
 @csrf_exempt
 def registration(request):
     results = {}
@@ -94,26 +93,6 @@ def registration(request):
     return JsonResponse(data=results)
 
 @csrf_exempt
-def users_list(request):
-    results = {}
-    error = {}
-    if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "please login!"
-        results['Message'] = error
-    else:
-        user_list = []
-        for i in User.objects.all():
-            tmp = {}
-            tmp['id'] = i.id
-            tmp['username'] = i.username
-            tmp['email'] = i.email
-            tmp['password'] = i.password
-            user_list.append(tmp)
-        results['Message'] = user_list
-    return JsonResponse(data=results)
-
-@csrf_exempt
 def category_list(request):
     results = {}
     error = {}
@@ -131,24 +110,6 @@ def category_list(request):
             categroy_list.append(tmp)
         results['Categories'] = categroy_list
     #print(request)
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def add_category(request):
-    results = {}
-    tmp = {}
-    name = request.GET['name']
-    tmp['Success'] = False
-    tmp['Text'] = "Not correct"
-    if request.user.is_authenticated() == 0:
-        tmp['Text'] = "Please, login!"
-
-    if name is not None and request.user.is_authenticated():
-        category = Categories(name=name)
-        category.save()
-        tmp['Success'] = True
-        tmp['Text'] = " "
-    results['Message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -176,65 +137,6 @@ def question_list(request):
     return JsonResponse(data=results)
 
 @csrf_exempt
-def add_question(request):
-    results = {}
-    tmp = {}
-    tmp['Success'] = False
-    tmp['Text'] = "Not correct"
-    category_id = request.GET['category_id']
-    question_text = request.GET['question_text']
-    answer_1 = request.GET['answer_1']
-    answer_2 = request.GET['answer_2']
-    answer_3 = request.GET['answer_3']
-    answer_4 = request.GET['answer_4']
-    correct_answer = request.GET['correct_answer']
-    if category_id and question_text and answer_1 and answer_2 and answer_3 and answer_4 and correct_answer:
-        question = Questions(category_id=category_id, question_text=question_text, answer_1=answer_1, answer_2=answer_2, answer_3=answer_3, answer_4=answer_4, correct_answer=correct_answer, level=1)
-        question.save()
-        tmp['Text'] = " "
-        tmp['Success'] = True
-    results['Message'] = tmp
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def delete_category(request):
-    results = {}
-    tmp = {}
-    id = request.GET['id']
-    tmp['Success'] = False
-    tmp['Text'] = "Not correct"
-    if request.user.is_authenticated() == 0:
-        tmp['Text'] = "Please, login!"
-
-    if id is not None and request.user.is_authenticated():
-        category = Categories(id=id)
-        category.delete()
-        tmp['Success'] = True
-        tmp['Text'] = " "
-    results['Message'] = tmp
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def pool(request):
-    results = {}
-    error = {}
-    if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
-    else:
-        pool = []
-        for i in Pool.objects.all():
-            tmp = {}
-            tmp['id'] = i.id
-            tmp['category_id'] = i.category_id
-            tmp['user_id'] = i.user_id
-            tmp['rank'] = i.rank
-            pool.append(tmp)
-        results['Message'] = pool
-    return JsonResponse(data=results)
-
-@csrf_exempt
 def rank_list(request):
     results = {}
     error = {}
@@ -254,7 +156,6 @@ def rank_list(request):
         results['Message'] = ranking
     return JsonResponse(data=results)
 
-
 @csrf_exempt
 def friend_list(request):
     results = {}
@@ -272,30 +173,6 @@ def friend_list(request):
             tmp['user_id_2'] = i.user_id_2
             friends.append(tmp)
         results['Message'] = friends
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def game_info(request):
-    results = {}
-    error = {}
-    if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
-    else:
-        gameInfo = []
-        for i in GameInfo.objects.all():
-            tmp = {}
-            tmp['id'] = i.id
-            tmp['user_id_1'] = i.user_id_1
-            tmp['user_id_2'] = i.user_id_2
-            tmp['game_id'] = i.game_id
-            tmp['category_id'] = i.category_id
-            tmp['game_status'] = i.game_status
-            tmp['point_1'] = i.point_1
-            tmp['point_2'] = i.point_2
-            gameInfo.append(tmp)
-        results['Message'] = gameInfo
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -344,7 +221,6 @@ def get_my_category_list(request):
             category_list.append(tmp)
         results['Message'] = category_list
     return JsonResponse(data=results)
-
 
 @csrf_exempt
 def get_my_rank_by_category(request):
@@ -403,7 +279,6 @@ def get_played_games_list(request):
             results['Message'] = "No any games!"
     return JsonResponse(data=results)
 
-
 @csrf_exempt
 def get_played_game_info(request):
     results = {}
@@ -441,7 +316,6 @@ def get_played_game_info(request):
             list.append(tmp)
         results['Message'] = list
     return JsonResponse(data=results)
-
 
 def generateQuestions(category_id):
     list = []
@@ -617,12 +491,9 @@ def game_end(request):
     else:
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
-        person = Person.objects.get(user_id=request.user.id)
-        person.total_points = person.total_points + int(points)
-        person.save()
-        #ranking = Ranking.objects.get(user_id=request.user.id, category_id=gameInfo.category_id)
-        #ranking.rank = ranking.rank + int(points)
-        #ranking.save()
+        #person = Person.objects.get(user_id=request.user.id)
+        #person.total_points = person.total_points + int(points)
+        #person.save()
         answerList = UserAnswerList(id=game.user1_answer_id)
         if gameInfo.user_id_1 == request.user.id:
             gameInfo.point_1 = points
@@ -647,6 +518,8 @@ def game_end(request):
         answerList.save()
         gameInfo.save()
         game.save()
+        if gameInfo.game_status == 4 and gameInfo.user_id_2 != 1:
+            ranking_update(gameInfo.id)
         pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1, game_info_id=gameInfo.id)
         if pool:
             pool.delete()
@@ -1184,7 +1057,10 @@ def bot_simulation(questions):
     return answer_list
 
 # rating calculation for 2 players
-def calc_rating(user1, user2, pts1, pts2, winner):
+def calc_rating(pts1, pts2, winner):
+    # winner = 0 - draw
+    # winner = 1 - user1 winner
+    # winner = 2 - user2 winner
     w = 0
     if winner == 1:
         w = 1
@@ -1199,13 +1075,27 @@ def calc_rating(user1, user2, pts1, pts2, winner):
     tmp['user2_pts'] = R2
     return tmp
 
-def ranking_update(user1, user2, R1, R2):
-    person1 = Person.objects.get(user_id=user1)
-    person2 = Person.objects.get(user_id=user2)
-    person1.total_points += R1
-    person2.total_points += R2
+def ranking_update(game_info_id):
+    gameInfo = GameInfo.objects.get(id=game_info_id)
+    person1 = Person.objects.get(user_id=gameInfo.user_id_1)
+    person2 = Person.objects.get(user_id=gameInfo.user_id_2)
+    person1_categ_rank = Ranking.objects.get(user_id=gameInfo.user_id_1, category_id=gameInfo.category_id)
+    person2_categ_rank = Ranking.objects.get(user_id=gameInfo.user_id_2, category_id=gameInfo.category_id)
+    winner = 0
+    if gameInfo.point_1 > gameInfo.point_2:
+        winner = 1
+    elif gameInfo.points_2 > gameInfo.points_1:
+        winner = 2
+    result = calc_rating(person1.total_points, person2.total_points, winner)
+    person1.total_points += result['user1_pts']
+    person2.total_points += result['user2_pts']
+    person1_categ_rank.rank += result['user1_pts']
+    person2_categ_rank.rank += result['user2_pts']
+    print("user1_pts="+result['user1_pts']+"  user2_pts="+result['user2_pts'])
     person1.save()
     person2.save()
+    person1_categ_rank.save()
+    person2_categ_rank.save()
 
 # give coefficient for some pts
 def getFactor(pts):
@@ -1235,3 +1125,35 @@ def convertImgToString(path):
     file = cStringIO.StringIO(urllib.urlopen(path).read())
     stringFormat = base64.b64encode(file.read())
     return stringFormat
+
+@csrf_exempt
+def search_users(request):
+    string = request.POST['string']
+    unicodedata.normalize('NFKD', string).encode('ascii','ignore')
+    strLow = string.lower()
+    strUp = string[0].upper() + string[1::].lower()
+    tmp = {}
+    results = {}
+    users_list = []
+    for i in User.objects.filter(Q(first_name__contains=strUp) | Q(first_name__contains=strLow) | Q(last_name__contains=strUp) | Q(last_name__contains=strLow)):
+        list = {}
+        person = Person.objects.get(user_id=i.id)
+        list['first_name'] = i.first_name
+        list['last_name'] = i.last_name
+        list['avatar'] = person.avatar
+        list['city'] = person.city
+        list['user_id'] = person.user_id
+        list['total_points'] = person.total_points
+        if i.id != request.user.id:
+            users_list.append(list)
+    tmp['text'] = 'No any users'
+    tmp['success'] = False
+    users_list = sorted(users_list, key=lambda i: i['total_points'])
+    users_list.reverse()
+    if len(users_list) > 0:
+        tmp['text'] = "Ok"
+        tmp['success'] = True
+        tmp['users'] = users_list
+    results['Message'] = tmp
+    return JsonResponse(data=results)
+
