@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mainapp',
+    'push_notifications',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -73,8 +74,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'EntalappDB',
         'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '',
+        'PASSWORD': 'QUCqx07GkW',
+        'HOST': 'mysql21760-env-3315080.j.dnr.kz',
         'PORT': '3306',
     }
 }
@@ -88,6 +89,16 @@ DATABASES = {
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
+
+PUSH_NOTIFICATIONS_SETTINGS = {
+        "GCM_API_KEY": "AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs",
+        "GCM_POST_URL": "https://android.googleapis.com/gcm/send",
+
+}
+
+#GCM_APIKEY = "AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs"
+
+SOUTH_MIGRATION_MODULES = {"push_notifications": "push_notifications.south_migrations"}
 
 LANGUAGE_CODE = 'en-us'
 

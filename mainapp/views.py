@@ -20,8 +20,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import sys
 import unicodedata
+from push_notifications.models import GCMDevice
 import xlrd
 from mainapp.models import *
+from django.db import transaction
 
 @csrf_exempt
 def login_view(request):
@@ -29,34 +31,34 @@ def login_view(request):
     tmp = {}
     username = request.POST['username']
     password = request.POST['password']
-    tmp['Success'] = False
-    tmp['Text'] = "Bla bla"
+    tmp['success'] = False
+    tmp['text'] = "Bla bla"
     user = authenticate(username=username, password=password)
     if user is not None:
         if user.is_active:
             request.user = user
             login(request, user)
-            tmp['Success'] = True
-            tmp['Text'] = "Your account is ok"
+            tmp['success'] = True
+            tmp['text'] = "Your account is ok"
             #return HttpResponse("Your account is ok.")
         else:
-            tmp['Success'] = True
-            tmp['Text'] = "Your account is disabled"
+            tmp['success'] = True
+            tmp['text'] = "Your account is disabled"
             #return HttpResponse("Your account is disabled.")
     else:
-         tmp['Success'] = False
-         tmp['Text'] = "Invalid login or password"
+         tmp['success'] = False
+         tmp['text'] = "Invalid login or password"
          #return HttpResponse("Invalid login details supplied.")
-    results['Message'] = tmp
+    results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
 def logout_view(request):
     results = {}
     tmp = {}
-    tmp['Success'] = True
-    tmp['Text'] = " "
-    results['Message'] = tmp
+    tmp['success'] = True
+    tmp['text'] = " "
+    results['message'] = tmp
     logout(request)
     return JsonResponse(data=results)
 
@@ -64,8 +66,8 @@ def logout_view(request):
 def registration(request):
     results = {}
     tmp = {}
-    tmp['Success'] = False
-    tmp['Text'] = "Current user is already exist"
+    tmp['success'] = False
+    tmp['text'] = "Current user is already exist"
     #username = request.POST['username']
     first_name = request.POST['first_name']
     last_name = request.POST['last_name']
@@ -84,12 +86,12 @@ def registration(request):
             for i in Categories.objects.all():
                 ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
                 ranking.save()
-            tmp['Success'] = True
-            tmp['Text'] = "Registred"
+            tmp['success'] = True
+            tmp['text'] = "Registred"
     else:
-        tmp['Text'] = "Please, set all the fields"
-        tmp['Success'] = False
-    results['Message'] = tmp
+        tmp['text'] = "Please, set all the fields"
+        tmp['success'] = False
+    results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -97,9 +99,9 @@ def category_list(request):
     results = {}
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         categroy_list = []
         for i in Categories.objects.all():
@@ -108,32 +110,7 @@ def category_list(request):
             tmp['category'] = i.name
             tmp['subcategory'] = i.subcategory
             categroy_list.append(tmp)
-        results['Categories'] = categroy_list
-    #print(request)
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def question_list(request):
-    results = {}
-    error = {}
-    if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
-    else:
-        question_list = []
-        for i in Questions.objects.all():
-            tmp = {}
-            tmp['id'] = i.id
-            tmp['category_id'] = i.category_id
-            tmp['question_text'] = i.question_text
-            tmp['answer_1'] = i.answer_1
-            tmp['answer_2'] = i.answer_2
-            tmp['answer_3'] = i.answer_3
-            tmp['answer_4'] = i.answer_4
-            tmp['correct_answer'] = i.correct_answer
-            question_list.append(tmp)
-        results['Message'] = question_list
+        results['message'] = categroy_list
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -141,9 +118,9 @@ def rank_list(request):
     results = {}
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         ranking = []
         for i in Ranking.objects.all():
@@ -153,7 +130,7 @@ def rank_list(request):
             tmp['user_id'] = i.user_id
             tmp['rank'] = i.rank
             ranking.append(tmp)
-        results['Message'] = ranking
+        results['message'] = ranking
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -161,9 +138,9 @@ def friend_list(request):
     results = {}
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         friends = []
         for i in Friends.objects.all():
@@ -172,7 +149,7 @@ def friend_list(request):
             tmp['user_id_1'] = i.user_id_1
             tmp['user_id_2'] = i.user_id_2
             friends.append(tmp)
-        results['Message'] = friends
+        results['message'] = friends
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -180,9 +157,9 @@ def get_my_profile(request):
     results = {}
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         profile = {}
         tmp = User.objects.get(id=request.user.id)
@@ -194,7 +171,7 @@ def get_my_profile(request):
         profile['last_name'] = tmp.last_name
         profile['avatar'] = convertImgToString(person.avatar)
         profile['total_points'] = person.total_points
-        results['Message'] = profile
+        results['message'] = profile
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -202,9 +179,9 @@ def get_my_category_list(request):
     results = {}
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         category_list = []
         listOfId = []
@@ -219,7 +196,7 @@ def get_my_category_list(request):
             tmp['name'] = k.name
             tmp['subcategory'] = k.subcategory
             category_list.append(tmp)
-        results['Message'] = category_list
+        results['message'] = category_list
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -228,9 +205,9 @@ def get_my_rank_by_category(request):
     error = {}
     category_id = request.POST['id']
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         ranking = {}
         tmp = Ranking.objects.get(user_id=request.user.id, category_id=category_id)
@@ -239,7 +216,7 @@ def get_my_rank_by_category(request):
         ranking['category_name'] = Categories.objects.get(id=tmp.category_id).name
         ranking['category_point'] = tmp.rank
         ranking['category_id'] = Categories.objects.get(id=tmp.category_id).id
-        results['Message'] = ranking
+        results['message'] = ranking
     return JsonResponse(data=results)
 
 # Win = 1
@@ -251,9 +228,9 @@ def get_played_games_list(request):
     list = []
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         for i in GameInfo.objects.filter((Q(user_id_1=request.user.id) | Q(user_id_2=request.user.id)) & Q(game_status=4)).order_by('-date'):
             opponent = User.objects.get(id=i.user_id_1)
@@ -274,7 +251,7 @@ def get_played_games_list(request):
             games_list['category_name'] = Categories.objects.get(id=i.category_id).name
             games_list['game_id'] = i.game_id
             list.append(games_list)
-        results['Message'] = list
+        results['message'] = list
         if len(list) == 0:
             results['Message'] = "No any games!"
     return JsonResponse(data=results)
@@ -286,9 +263,9 @@ def get_played_game_info(request):
     error = {}
     game_info_id = request.POST['id']
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         gameInfo = GameInfo.objects.get(id=game_info_id)
         game = Game.objects.get(id=gameInfo.game_id)
@@ -314,7 +291,7 @@ def get_played_game_info(request):
             tmp['user2_answer'] = user2.user_answer_1
             tmp['user2_point'] = user2.point_1
             list.append(tmp)
-        results['Message'] = list
+        results['message'] = list
     return JsonResponse(data=results)
 
 def generateQuestions(category_id):
@@ -345,9 +322,9 @@ def get_my_rank(request):
     results = {}
     error = {}
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         ranking = []
         for i in Ranking.objects.all():
@@ -357,7 +334,7 @@ def get_my_rank(request):
                 tmp['points'] = i.rank
                 tmp['category_name'] = category_name
                 ranking.append(tmp)
-        results['Message'] = ranking
+        results['message'] = ranking
     return JsonResponse(data=results)
 
 # game_status = 1  // firs player ready to play
@@ -381,7 +358,7 @@ def add_to_pool(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         rank = Ranking.objects.get(user_id=request.user.id,category_id=category_id).rank
         inPool = 0
@@ -464,7 +441,7 @@ def add_to_pool(request):
             pool.save()
             tmp['success'] = False
             tmp['text'] = "Added to pool"
-        results['Message'] = tmp
+        results['message'] = tmp
         return JsonResponse(data=results)
 
 @csrf_exempt
@@ -485,9 +462,9 @@ def game_end(request):
     point_5 = request.POST['point5']
     #points = int(points)
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
@@ -524,9 +501,9 @@ def game_end(request):
         if pool:
             pool.delete()
         tmp = {}
-        tmp['Success'] = True
-        tmp['Text'] = "Game end!"
-        results['Message'] = tmp
+        tmp['success'] = True
+        tmp['text'] = "Game end!"
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -535,9 +512,9 @@ def get_data_from_file(request):
     error = {}
     list = []
     if request.user.is_authenticated() == 0:
-        error['Success'] = False
-        error['Text'] = "Please, login!"
-        results['Message'] = error
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
     else:
         #file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.xls')
         rb = xlrd.open_workbook('C:/Users/Student/Desktop/test.xls',formatting_info=True)
@@ -548,7 +525,7 @@ def get_data_from_file(request):
             question = Questions(category_id=row[0], question_text=row[1], answer_1=row[2], answer_2=row[3], answer_3=row[4], answer_4=row[5], correct_answer=row[6], level=row[7])
             question.save()
             list.append(row)
-    results['Message'] = list
+    results['message'] = list
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -559,7 +536,7 @@ def game_result(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         tmp = {}
 
@@ -583,7 +560,7 @@ def game_result(request):
         else:
             tmp['success'] = True
             tmp['text'] = "Results"
-        results['Message'] = tmp
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -595,7 +572,7 @@ def kill_search(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         k = Pool.objects.get(user_id=request.user.id, category_id=category_id)
         gI = GameInfo.objects.get(id=k.game_info_id)
@@ -638,7 +615,7 @@ def kill_search(request):
             k.delete()
             tmp['success'] = False
             tmp['text'] = "Game Deleted"
-        results['Message'] = tmp
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -652,6 +629,8 @@ def login_social_network(request):
     id_vk = request.POST['id_vk']
     id_fb = request.POST['id_fb']
     friends = request.POST['friends']
+    tmp['success'] = False
+    tmp['text'] = "bad"
     if id_fb != '0':
         try:
             user_social = Person.objects.get(fb_id=id_fb)
@@ -678,6 +657,8 @@ def login_social_network(request):
                     friendship.save()
             except:
                 pass
+        tmp['text'] = "Good"
+        tmp['success'] = True
     elif id_vk != '0':
         try:
             user_social = Person.objects.get(vk_id=id_vk)
@@ -704,10 +685,9 @@ def login_social_network(request):
                     friendship.save()
             except User.DoesNotExist:
                 pass
-
-    tmp['success'] = True
-    tmp['text'] = "good"
-    results['Message'] = tmp
+        tmp['text'] = "Good"
+        tmp['success'] = True
+    results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -718,7 +698,7 @@ def get_ranking(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         for i in Person.objects.order_by('-total_points'):
             user = User.objects.get(id=i.user_id)
@@ -728,7 +708,7 @@ def get_ranking(request):
             tmp['last_name'] = user.last_name
             tmp['avatar'] = convertImgToString(i.avatar)
             list.append(tmp)
-    results['Message'] = list
+    results['message'] = list
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -740,7 +720,7 @@ def get_friends(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         for i in Friends.objects.all():
             tmp = {}
@@ -767,8 +747,8 @@ def get_friends(request):
         if len(list) == 0:
             msg['success'] = True
             msg['text'] = "No any friends"
-            results['Message'] = msg
-    results['Message'] = list
+            results['message'] = msg
+    results['message'] = list
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -783,7 +763,7 @@ def i_want_to_play_with_friend(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         tmp = {}
         user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
@@ -811,7 +791,7 @@ def i_want_to_play_with_friend(request):
         game.save()
         tmp['success'] = True
         tmp['text'] = "You invite your friend"
-        results['Message'] = tmp
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -822,7 +802,7 @@ def who_challenge_me(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         gameInfo = None
         for i in GameInfo.objects.all():
@@ -838,7 +818,7 @@ def who_challenge_me(request):
         else:
             tmp['success'] = False
             tmp['text'] = "No challenge for you"
-        results['Message'] = tmp
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -855,7 +835,7 @@ def answer_to_challenge(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
@@ -894,7 +874,7 @@ def answer_to_challenge(request):
                 obj['correct_answer'] = k.correct_answer
                 questions.append(obj)
             tmp['questions'] = questions
-        results['Message'] = tmp
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -908,7 +888,7 @@ def get_top_20(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         for i in Person.objects.order_by('-total_points'):
             tmp = {}
@@ -927,7 +907,7 @@ def get_top_20(request):
                 tmp['position'] = position
                 list.append(tmp)
             position += 1
-    results['Message'] = list
+    results['message'] = list
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -1019,7 +999,7 @@ def play_with_bot(request):
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
-        results['Message'] = error
+        results['message'] = error
     else:
         tmp = {}
         list = generateQuestions(category_id=int(category_id))
@@ -1039,7 +1019,7 @@ def play_with_bot(request):
         tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_2).avatar)
         tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
         tmp['questions'] = list
-        results['Message'] = tmp
+        results['message'] = tmp
     return JsonResponse(data=results)
 
 # random answer to the questions
@@ -1122,9 +1102,9 @@ def clear(request):
 
 #convert image format to stirng base64 format
 def convertImgToString(path):
-    file = cStringIO.StringIO(urllib.urlopen(path).read())
-    stringFormat = base64.b64encode(file.read())
-    return stringFormat
+    #file = cStringIO.StringIO(urllib.urlopen(path).read())
+    #stringFormat = base64.b64encode(file.read())
+    return path
 
 @csrf_exempt
 def search_users(request):
@@ -1154,6 +1134,24 @@ def search_users(request):
         tmp['text'] = "Ok"
         tmp['success'] = True
         tmp['users'] = users_list
-    results['Message'] = tmp
+    results['message'] = tmp
     return JsonResponse(data=results)
 
+@csrf_exempt
+@transaction.atomic
+def notification(request):
+    results = {}
+    results['text'] = "Very good"
+    #gcm_reg_id = "APA91bF3EZ0_AEfQSjoshJSzZzPOzTZZ2IGFIXVNaQZZld4k_WW0WBqZdK3DOjI39WHXatXF73FvAgFfcIuj7iECJ2-DgyquU8CL338n9RUmBhNWmqRTv9CLqkt393RspfTd2R_mYdTb"
+    #d = GCMDevice(registration_id=gcm_reg_id)
+    #d.save()
+    for device in GCMDevice.objects.all():
+        device.send_message(message="hello")
+
+    # payload = {'registration_ids': 'APA91bGLgmxplMMIrf0zDipkPE2k9pCOiAFX0Z4rVF9-FDf2tGJ_A7oJKjZ4QWmDfu39rjt01MKWlWdIk6nLFKR5JX6RZn-VhxgJ6SUKHVAsN7BXNVHr6ooyFLV6zKSIda720llJmQrB',
+    #            'data': 'Body_TEST'}
+    # headers = {'Authorization': 'key=AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs',
+    #            'Content-Type':'application/json',}
+    # r = requests.post("https://android.googleapis.com/gcm/send", params=payload, headers=headers)
+    # print(r._content)
+    return JsonResponse(data=results)

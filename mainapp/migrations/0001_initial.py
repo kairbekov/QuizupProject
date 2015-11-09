@@ -66,12 +66,40 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.CreateModel(
+            name='Invitation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('game_id', models.IntegerField()),
+                ('challenger_id', models.IntegerField()),
+                ('status', models.IntegerField()),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Person',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('user_id', models.IntegerField()),
+                ('vk_id', models.BigIntegerField(null=True)),
+                ('fb_id', models.BigIntegerField(null=True)),
+                ('city', models.CharField(max_length=256, null=True)),
+                ('avatar', models.CharField(max_length=256, null=True)),
+                ('total_points', models.IntegerField()),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
             name='Pool',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('category_id', models.IntegerField()),
                 ('user_id', models.IntegerField()),
                 ('rank', models.IntegerField()),
+                ('game_info_id', models.IntegerField()),
             ],
             options={
             },

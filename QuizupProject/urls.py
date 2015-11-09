@@ -7,6 +7,7 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^mainapp/', include('mainapp.urls')),
+    #url(r'', include('gcm.urls')),
 )
 
 admin.site.site_header = 'Admin site'
