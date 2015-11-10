@@ -53,5 +53,7 @@ urlpatterns = [
     #url(r'^test/', test, name='test'),
     url(r'^search/', search_users, name='search'),
 
+    url(r'^regid/', reg_id, name='reg_id'),
     url(r'^notification/', notification, name='notification'),
+
 ]

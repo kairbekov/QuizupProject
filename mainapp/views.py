@@ -772,7 +772,6 @@ def i_want_to_play_with_friend(request):
         game.save()
         gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6), pts1_change=0, pts2_change=0)
         gameInfo.save()
-
         list = generateQuestions(category_id=gameInfo.category_id)
         tmp['game_id'] = game.id
         tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
@@ -787,6 +786,7 @@ def i_want_to_play_with_friend(request):
         game.question_id_4 = list[3]['id']
         game.question_id_5 = list[4]['id']
         game.save()
+        notification(from_user=request.user.id, to_user=friend_id, game_id=gameInfo.game_id)
         tmp['success'] = True
         tmp['text'] = "You invite your friend"
         results['message'] = tmp
@@ -1141,20 +1141,33 @@ def search_users(request):
     return JsonResponse(data=results)
 
 @csrf_exempt
-@transaction.atomic
-def notification(request):
+def reg_id(request):
     results = {}
-    results['text'] = "Very good"
-    #gcm_reg_id = "APA91bF3EZ0_AEfQSjoshJSzZzPOzTZZ2IGFIXVNaQZZld4k_WW0WBqZdK3DOjI39WHXatXF73FvAgFfcIuj7iECJ2-DgyquU8CL338n9RUmBhNWmqRTv9CLqkt393RspfTd2R_mYdTb"
-    #d = GCMDevice(registration_id=gcm_reg_id)
-    #d.save()
-    for device in GCMDevice.objects.all():
-        device.send_message(message="hello")
+    error = {}
+    reg_id = request.POST['reg_id']
+    if request.user.is_authenticated() == 0:
+        error['success'] = False
+        error['text'] = "Please, login!"
+        results['message'] = error
+    else:
+        tmp = {}
+        tmp['success'] = True
+        tmp['text'] = "Good job"
+        person = Person.objects.get(user_id=request.user.id)
+        person.reg_id = reg_id
+        person.save()
+        d = GCMDevice(registration_id=reg_id)
+        d.save()
+        results['message'] = tmp
+    return JsonResponse(data=results)
 
-    # payload = {'registration_ids': 'APA91bGLgmxplMMIrf0zDipkPE2k9pCOiAFX0Z4rVF9-FDf2tGJ_A7oJKjZ4QWmDfu39rjt01MKWlWdIk6nLFKR5JX6RZn-VhxgJ6SUKHVAsN7BXNVHr6ooyFLV6zKSIda720llJmQrB',
-    #            'data': 'Body_TEST'}
-    # headers = {'Authorization': 'key=AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs',
-    #            'Content-Type':'application/json',}
-    # r = requests.post("https://android.googleapis.com/gcm/send", params=payload, headers=headers)
-    # print(r._content)
+def notification(from_user, to_user, game_id):
+    results = {}
+    reg_id = Person.objects.get(user_id=to_user).reg_id
+    try:
+        results['text'] = "Very good"
+        device = GCMDevice.objects.get(registration_id=reg_id)
+        device.send_message(None, extra={"message": "Give me your parashute!", "title": "Hello, my dear friend!", 'game_id':game_id})
+    except GCMDevice.DoesNotExist:
+        results['text'] = "No such reg_id"
     return JsonResponse(data=results)

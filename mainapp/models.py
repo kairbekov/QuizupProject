@@ -75,6 +75,7 @@ class Person(models.Model):
     city = models.CharField(max_length=256, null=True)
     avatar = models.CharField(max_length=256, null=True)
     total_points = models.IntegerField()
+    reg_id = models.CharField(max_length=256, null=True)
 
 class Invitation(models.Model):
     game_id = models.IntegerField()
