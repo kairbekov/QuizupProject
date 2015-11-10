@@ -1163,11 +1163,11 @@ def reg_id(request):
 
 def notification(from_user, to_user, game_id):
     results = {}
+    results['text'] = "Very good"
     reg_id = Person.objects.get(user_id=to_user).reg_id
     try:
-        results['text'] = "Very good"
         device = GCMDevice.objects.get(registration_id=reg_id)
         device.send_message(None, extra={"message": "Give me your parashute!", "title": "Hello, my dear friend!", 'game_id':game_id})
     except GCMDevice.DoesNotExist:
-        results['text'] = "No such reg_id"
+        pass
     return JsonResponse(data=results)
