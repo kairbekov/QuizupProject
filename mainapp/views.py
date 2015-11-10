@@ -435,14 +435,14 @@ def add_to_pool(request):
             user_answer_list_2.save()
             game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
             game.save()
-            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6))
+            gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=0, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6), pts1_change=0, pts2_change=0)
             gameInfo.save()
             pool = Pool(category_id=category_id, user_id=request.user.id, rank=rank, game_info_id=gameInfo.id)
             pool.save()
             tmp['success'] = False
             tmp['text'] = "Added to pool"
-        results['message'] = tmp
-        return JsonResponse(data=results)
+    results['message'] = tmp
+    return JsonResponse(data=results)
 
 @csrf_exempt
 def game_end(request):
@@ -460,7 +460,6 @@ def game_end(request):
     point_3 = request.POST['point3']
     point_4 = request.POST['point4']
     point_5 = request.POST['point5']
-    #points = int(points)
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -468,9 +467,6 @@ def game_end(request):
     else:
         gameInfo = GameInfo.objects.get(game_id=game_id)
         game = Game.objects.get(id=game_id)
-        #person = Person.objects.get(user_id=request.user.id)
-        #person.total_points = person.total_points + int(points)
-        #person.save()
         answerList = UserAnswerList(id=game.user1_answer_id)
         if gameInfo.user_id_1 == request.user.id:
             gameInfo.point_1 = points
@@ -495,12 +491,14 @@ def game_end(request):
         answerList.save()
         gameInfo.save()
         game.save()
+        tmp = {}
         if gameInfo.game_status == 4 and gameInfo.user_id_2 != 1:
             ranking_update(gameInfo.id)
-        pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1, game_info_id=gameInfo.id)
-        if pool:
+        try:
+            pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1, game_info_id=gameInfo.id)
             pool.delete()
-        tmp = {}
+        except Pool.DoesNotExist:
+            pass
         tmp['success'] = True
         tmp['text'] = "Game end!"
         results['message'] = tmp
@@ -772,7 +770,7 @@ def i_want_to_play_with_friend(request):
         user_answer_list_2.save()
         game = Game(question_id_1=0, question_id_2=0, question_id_3=0, question_id_4=0, question_id_5=0, user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
         game.save()
-        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6))
+        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=1, point_1=0, point_2=0, date=datetime.datetime.now() + datetime.timedelta(hours=6), pts1_change=0, pts2_change=0)
         gameInfo.save()
 
         list = generateQuestions(category_id=gameInfo.category_id)
@@ -1011,7 +1009,7 @@ def play_with_bot(request):
         user_answer_list_2.save()
         game = Game(question_id_1=list[0]['id'], question_id_2=list[1]['id'], question_id_3=list[2]['id'], question_id_4=list[3]['id'], question_id_5=list[4]['id'], user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
         game.save()
-        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=1, game_id=game.id, category_id=category_id, game_status=3, point_1=0, point_2=pts_sum, date=datetime.datetime.now() + datetime.timedelta(hours=6))
+        gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=1, game_id=game.id, category_id=category_id, game_status=3, point_1=0, point_2=pts_sum, date=datetime.datetime.now() + datetime.timedelta(hours=6), pts1_change=0, pts2_change=0)
         gameInfo.save()
         tmp['success'] = True
         tmp['game_id'] = game.id
@@ -1037,7 +1035,7 @@ def bot_simulation(questions):
     return answer_list
 
 # rating calculation for 2 players
-def calc_rating(pts1, pts2, winner):
+def calc_ranking(pts1, pts2, winner):
     # winner = 0 - draw
     # winner = 1 - user1 winner
     # winner = 2 - user2 winner
@@ -1046,8 +1044,8 @@ def calc_rating(pts1, pts2, winner):
         w = 1
     elif winner == 0:
         w = 0.5
-    E1 = 1/(1+10^((pts2-pts1)/400))
-    E2 = 1/(1+10^((pts1-pts2)/400))
+    E1 = 1.0/(1+10^((pts2-pts1)/400))
+    E2 = 1.0/(1+10^((pts1-pts2)/400))
     R1 = getFactor(pts=pts1)*(w-E1)
     R2 = getFactor(pts=pts2)*(1-w-E2)
     tmp = {}
@@ -1061,17 +1059,22 @@ def ranking_update(game_info_id):
     person2 = Person.objects.get(user_id=gameInfo.user_id_2)
     person1_categ_rank = Ranking.objects.get(user_id=gameInfo.user_id_1, category_id=gameInfo.category_id)
     person2_categ_rank = Ranking.objects.get(user_id=gameInfo.user_id_2, category_id=gameInfo.category_id)
+    ranking1 = Ranking.objects.get(user_id=person1.user_id, category_id=gameInfo.category_id)
+    ranking2 = Ranking.objects.get(user_id=person2.user_id, category_id=gameInfo.category_id)
     winner = 0
     if gameInfo.point_1 > gameInfo.point_2:
         winner = 1
-    elif gameInfo.points_2 > gameInfo.points_1:
+    elif gameInfo.point_2 > gameInfo.point_1:
         winner = 2
-    result = calc_rating(person1.total_points, person2.total_points, winner)
+    result = calc_ranking(ranking1.rank, ranking2.rank, winner)
     person1.total_points += result['user1_pts']
     person2.total_points += result['user2_pts']
     person1_categ_rank.rank += result['user1_pts']
     person2_categ_rank.rank += result['user2_pts']
-    print("user1_pts="+result['user1_pts']+"  user2_pts="+result['user2_pts'])
+    gameInfo.pts1_change = result['user1_pts']
+    gameInfo.pts2_change = result['user2_pts']
+    gameInfo.save()
+    gameInfo.save()
     person1.save()
     person2.save()
     person1_categ_rank.save()

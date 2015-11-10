@@ -54,6 +54,4 @@ urlpatterns = [
     url(r'^search/', search_users, name='search'),
 
     url(r'^notification/', notification, name='notification'),
-
-
 ]
