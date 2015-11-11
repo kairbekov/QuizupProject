@@ -79,12 +79,12 @@ def registration(request):
         except User.DoesNotExist:
             user = User.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
             user.save()
-            person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=0)
+            person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=3000)
             person.save()
             user = authenticate(username=email, password=password)
             login(request,user)
             for i in Categories.objects.all():
-                ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
+                ranking = Ranking(category_id=i.id, user_id=user.id, rank=1000)
                 ranking.save()
             tmp['success'] = True
             tmp['text'] = "Registred"
@@ -637,10 +637,10 @@ def login_social_network(request):
         except Person.DoesNotExist:
             user = User.objects.create_user(username="fb"+id_fb, password="123", first_name=first_name, last_name=last_name)
             user.save()
-            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=0)
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=3000)
             person.save()
             for i in Categories.objects.all():
-                ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
+                ranking = Ranking(category_id=i.id, user_id=user.id, rank=1000)
                 ranking.save()
             user = authenticate(username="fb"+id_fb, password="123")
             login(request, user)
@@ -665,10 +665,10 @@ def login_social_network(request):
         except Person.DoesNotExist:
             user = User.objects.create_user(username="vk"+id_vk, password="123", first_name=first_name, last_name=last_name)
             user.save()
-            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=0)
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=3000)
             person.save()
             for i in Categories.objects.all():
-                ranking = Ranking(category_id=i.id, user_id=user.id, rank=0)
+                ranking = Ranking(category_id=i.id, user_id=user.id, rank=1000)
                 ranking.save()
             user = authenticate(username="vk"+id_vk, password="123")
             login(request, user)
@@ -753,7 +753,6 @@ def get_friends(request):
 def i_want_to_play_with_friend(request):
     results = {}
     error = {}
-    tmp = {}
     friend_id = request.POST['friend_id']
     category_id = request.POST['category_id']
     category_id = int(category_id)
@@ -1162,12 +1161,12 @@ def reg_id(request):
     return JsonResponse(data=results)
 
 def notification(from_user, to_user, game_id):
-    results = {}
-    results['text'] = "Very good"
+    results = "Very good"
     reg_id = Person.objects.get(user_id=to_user).reg_id
+    game_id = str(game_id)
     try:
         device = GCMDevice.objects.get(registration_id=reg_id)
         device.send_message(None, extra={"message": "Give me your parashute!", "title": "Hello, my dear friend!", 'game_id':game_id})
     except GCMDevice.DoesNotExist:
         pass
-    return JsonResponse(data=results)
+    return results
