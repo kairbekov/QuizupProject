@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from mainapp.questionImporting import *
 from mainapp.views import *
 
 __author__ = 'abuka'
@@ -14,9 +15,9 @@ urlpatterns = [
 
     url(r'^addtopool/', add_to_pool, name='add_to_pool'),
 
-    url(r'^ranking/', rank_list, name='rank_list'),
+    #url(r'^ranking/', rank_list, name='rank_list'),
 
-    url(r'^friends/', friend_list, name='friend_list'),
+    #url(r'^friends/', friend_list, name='friend_list'),
 
     # Android API methods
     url(r'^getmyprofile/', get_my_profile, name='get_my_profile'),
@@ -49,10 +50,9 @@ urlpatterns = [
     # play with bot
     url(r'^playwithbot/', play_with_bot, name='play_with_bot'),
 
-    url(r'^clear/', clear, name='clear'),
-    #url(r'^test/', test, name='test'),
     url(r'^search/', search_users, name='search'),
 
+    # push notification
     url(r'^regid/', reg_id, name='reg_id'),
     url(r'^notification/', notification, name='notification'),
 

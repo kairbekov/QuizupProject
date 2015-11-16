@@ -1,29 +1,14 @@
-import base64
-import csv
-import os
 import datetime
-import cStringIO
-import codecs
 import random
-import urllib
-from PIL import Image
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.core.serializers import json
 import json
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from os import path
-from sets import Set
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-import sys
 import unicodedata
 from push_notifications.models import GCMDevice
-import xlrd
 from mainapp.models import *
-from django.db import transaction
 
 @csrf_exempt
 def login_view(request):
@@ -40,15 +25,12 @@ def login_view(request):
             login(request, user)
             tmp['success'] = True
             tmp['text'] = "Your account is ok"
-            #return HttpResponse("Your account is ok.")
         else:
             tmp['success'] = True
             tmp['text'] = "Your account is disabled"
-            #return HttpResponse("Your account is disabled.")
     else:
          tmp['success'] = False
          tmp['text'] = "Invalid login or password"
-         #return HttpResponse("Invalid login details supplied.")
     results['message'] = tmp
     return JsonResponse(data=results)
 
@@ -114,45 +96,6 @@ def category_list(request):
     return JsonResponse(data=results)
 
 @csrf_exempt
-def rank_list(request):
-    results = {}
-    error = {}
-    if request.user.is_authenticated() == 0:
-        error['success'] = False
-        error['text'] = "Please, login!"
-        results['message'] = error
-    else:
-        ranking = []
-        for i in Ranking.objects.all():
-            tmp = {}
-            tmp['id'] = i.id
-            tmp['category_id'] = i.category_id
-            tmp['user_id'] = i.user_id
-            tmp['rank'] = i.rank
-            ranking.append(tmp)
-        results['message'] = ranking
-    return JsonResponse(data=results)
-
-@csrf_exempt
-def friend_list(request):
-    results = {}
-    error = {}
-    if request.user.is_authenticated() == 0:
-        error['success'] = False
-        error['text'] = "Please, login!"
-        results['message'] = error
-    else:
-        friends = []
-        for i in Friends.objects.all():
-            tmp = {}
-            tmp['id'] = i.id
-            tmp['user_id_1'] = i.user_id_1
-            tmp['user_id_2'] = i.user_id_2
-            friends.append(tmp)
-        results['message'] = friends
-    return JsonResponse(data=results)
-
-@csrf_exempt
 def get_my_profile(request):
     results = {}
     error = {}
@@ -169,7 +112,7 @@ def get_my_profile(request):
         profile['id'] = tmp.id
         profile['first_name'] = tmp.first_name
         profile['last_name'] = tmp.last_name
-        profile['avatar'] = convertImgToString(person.avatar)
+        profile['avatar'] = person.avatar
         profile['total_points'] = person.total_points
         results['message'] = profile
     return JsonResponse(data=results)
@@ -227,6 +170,7 @@ def get_played_games_list(request):
     results = {}
     list = []
     error = {}
+    size = request.POST['size']
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -238,7 +182,7 @@ def get_played_games_list(request):
                 opponent = User.objects.get(id=i.user_id_2)
             games_list = {}
             games_list['opponent_name'] = opponent.first_name
-            games_list['avatar'] = convertImgToString(Person.objects.get(user_id=opponent.id).avatar)
+            games_list['avatar'] = Person.objects.get(user_id=opponent.id).avatar
             games_list['date'] = (i.date).strftime("%Y-%m-%d %H:%M")
             status = " "
             if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
@@ -251,9 +195,15 @@ def get_played_games_list(request):
             games_list['category_name'] = Categories.objects.get(id=i.category_id).name
             games_list['game_id'] = i.game_id
             list.append(games_list)
-        results['message'] = list
-        if len(list) == 0:
-            results['Message'] = "No any games!"
+        if size > len(list):
+            results['message'] = list
+        elif len(list) == 0:
+            results['message'] = "No any games!"
+        else:
+            newList = []
+            for i in range(0,size):
+                newList.append(list[i])
+            results['message'] = newList
     return JsonResponse(data=results)
 
 @csrf_exempt
@@ -393,7 +343,7 @@ def add_to_pool(request):
                     tmp['text'] = "Your opponent is found"
                     tmp['game_id'] = gI.game_id
                     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-                    tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
+                    tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     isOpponent = 1
@@ -413,7 +363,7 @@ def add_to_pool(request):
                     tmp['text'] = "Your opponent is found"
                     tmp['game_id'] = gI.game_id
                     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-                    tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
+                    tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
                     tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
                     tmp['questions'] = questions
                     game = Game.objects.get(id=gI.game_id)
@@ -505,28 +455,6 @@ def game_end(request):
     return JsonResponse(data=results)
 
 @csrf_exempt
-def get_data_from_file(request):
-    results = {}
-    error = {}
-    list = []
-    if request.user.is_authenticated() == 0:
-        error['success'] = False
-        error['text'] = "Please, login!"
-        results['message'] = error
-    else:
-        #file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.xls')
-        rb = xlrd.open_workbook('C:/Users/Student/Desktop/test.xls',formatting_info=True)
-        #rb = xlrd.open_workbook('C:/Users/abuka/Desktop/test.xls',formatting_info=True)
-        sheet = rb.sheet_by_index(0)
-        for rownum in range(sheet.nrows):
-            row = sheet.row_values(rownum)
-            question = Questions(category_id=row[0], question_text=row[1], answer_1=row[2], answer_2=row[3], answer_3=row[4], answer_4=row[5], correct_answer=row[6], level=row[7])
-            question.save()
-            list.append(row)
-    results['message'] = list
-    return JsonResponse(data=results)
-
-@csrf_exempt
 def game_result(request):
     results = {}
     error = {}
@@ -549,7 +477,7 @@ def game_result(request):
         tmp['date'] = (k.date).strftime("%Y-%m-%d %H:%M")
         tmp['opponent_name'] = User.objects.get(id=opponent).first_name
         tmp['category_name'] = Categories.objects.get(id=k.category_id).name
-        tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
+        tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
         tmp['opponent_id'] = opponent
         tmp['category_id'] = k.category_id
         if k.game_status != 4:
@@ -599,7 +527,7 @@ def kill_search(request):
             tmp['text'] = "Your game is ready"
             tmp['game_id'] = gI.game_id
             tmp['opponent_name'] = User.objects.get(id=opponent).first_name
-            tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=opponent).avatar)
+            tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
             tmp['opponent_points'] = Ranking.objects.get(user_id=opponent, category_id=category_id).rank
             tmp['questions'] = questions
         else:
@@ -628,12 +556,14 @@ def login_social_network(request):
     id_fb = request.POST['id_fb']
     friends = request.POST['friends']
     tmp['success'] = False
-    tmp['text'] = "bad"
+    tmp['text'] = "bad boy, no ne tvoy"
     if id_fb != '0':
         try:
             user_social = Person.objects.get(fb_id=id_fb)
             user = authenticate(username="fb"+id_fb, password="123")
             login(request, user)
+            user_social.avatar = avatar
+            user_social.save()
         except Person.DoesNotExist:
             user = User.objects.create_user(username="fb"+id_fb, password="123", first_name=first_name, last_name=last_name)
             user.save()
@@ -662,6 +592,8 @@ def login_social_network(request):
             user_social = Person.objects.get(vk_id=id_vk)
             user = authenticate(username="vk"+id_vk, password="123")
             login(request, user)
+            user_social.avatar = avatar
+            user_social.save()
         except Person.DoesNotExist:
             user = User.objects.create_user(username="vk"+id_vk, password="123", first_name=first_name, last_name=last_name)
             user.save()
@@ -704,7 +636,7 @@ def get_ranking(request):
             tmp['total_points'] = i.total_points
             tmp['first_name'] = user.first_name
             tmp['last_name'] = user.last_name
-            tmp['avatar'] = convertImgToString(i.avatar)
+            tmp['avatar'] = i.avatar
             list.append(tmp)
     results['message'] = list
     return JsonResponse(data=results)
@@ -727,7 +659,7 @@ def get_friends(request):
                 person = Person.objects.get(user_id=i.user_id_2)
                 tmp['first_name'] = user.first_name
                 tmp['last_name'] = user.last_name
-                tmp['avatar'] = convertImgToString(person.avatar)
+                tmp['avatar'] = person.avatar
                 tmp['total_points'] = person.total_points
                 tmp['user_id'] = person.user_id
                 list.append(tmp)
@@ -736,7 +668,7 @@ def get_friends(request):
                 person = Person.objects.get(user_id=i.user_id_1)
                 tmp['first_name'] = user.first_name
                 tmp['last_name'] = user.last_name
-                tmp['avatar'] = convertImgToString(person.avatar)
+                tmp['avatar'] = person.avatar
                 tmp['total_points'] = person.total_points
                 tmp['user_id'] = person.user_id
                 list.append(tmp)
@@ -774,7 +706,7 @@ def i_want_to_play_with_friend(request):
         list = generateQuestions(category_id=gameInfo.category_id)
         tmp['game_id'] = game.id
         tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
-        tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_2).avatar)
+        tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
         tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
         tmp['questions'] = list
         gameInfo.game_status = 0
@@ -849,7 +781,7 @@ def answer_to_challenge(request):
             tmp['success'] = True
             tmp['game_id'] = game.id
             tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_1).first_name
-            tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_1).avatar)
+            tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_1).avatar
             tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_1).total_points
             tmp['text'] = "gg wp"
             questions = []
@@ -898,7 +830,7 @@ def get_top_20(request):
                 tmp['id'] = i.id
                 tmp['first_name'] = user.first_name
                 tmp['last_name'] = user.last_name
-                tmp['avatar'] = convertImgToString(i.avatar)
+                tmp['avatar'] = i.avatar
                 tmp['total_points'] = i.total_points
                 tmp['isYou'] = isYou
                 tmp['position'] = position
@@ -906,86 +838,6 @@ def get_top_20(request):
             position += 1
     results['message'] = list
     return JsonResponse(data=results)
-
-@csrf_exempt
-def read_file(request):
-    path = 'C:/Users/Student/Desktop/bio.txt'
-    f = codecs.open(path, 'r', encoding='utf8')
-    #num_lines = sum(1 for line in f)
-    lines = f.readlines()
-    list = []
-    cnt = 1
-    correct = -1
-    t = {}
-    for i in lines:
-        if i[0] == '+':
-            t['correct_answer'] = cnt - 1
-            correct = cnt
-        if cnt == 1:
-            t['question'] = i[i.find('. ')+2:]
-        elif cnt == 2:
-            t['answer_1'] = i[i.find(') ')+2:-2]
-        elif cnt == 3:
-            t['answer_2'] = i[i.find(') ')+2:-2]
-        elif cnt == 4:
-            t['answer_3'] = i[i.find(') ')+2:-2]
-        elif cnt == 5:
-            t['answer_4'] = i[i.find(') ')+2:-2]
-        elif cnt == 6:
-            cnt = 0
-            if correct == 6:
-                t['correct_answer'] = 4
-                t['answer_4'] = i[i.find(') ')+2:-2]
-                correct = 0
-            list.append(t)
-            t = {}
-        cnt += 1
-    tmp = {}
-    tmp['text'] = list
-    f.close()
-    return JsonResponse(data=tmp)
-
-@csrf_exempt
-def from_file_to_db(request):
-    category = request.POST['category_id']
-    path = 'C:/Users/Student/Desktop/bio.txt'
-    f = codecs.open(path, 'r', encoding='utf8')
-    #num_lines = sum(1 for line in f)
-    lines = f.readlines()
-    list = []
-    cnt = 1
-    correct = -1
-    t = {}
-    for i in lines:
-        if i[0] == '+':
-            t['correct_answer'] = cnt - 1
-            correct = cnt
-        if cnt == 1:
-            t['question'] = i[i.find('. ')+2:]
-        elif cnt == 2:
-            t['answer_1'] = i[i.find(') ')+2:-2]
-        elif cnt == 3:
-            t['answer_2'] = i[i.find(') ')+2:-2]
-        elif cnt == 4:
-            t['answer_3'] = i[i.find(') ')+2:-2]
-        elif cnt == 5:
-            t['answer_4'] = i[i.find(') ')+2:-2]
-        elif cnt == 6:
-            cnt = 0
-            if correct == 6:
-                t['correct_answer'] = 4
-                t['answer_4'] = i[i.find(') ')+2:-2]
-                correct = 0
-            #print t['question']
-            question = Questions(category_id=category, question_text=t['question'], answer_1=t['answer_1'], answer_2=t['answer_2'], answer_3=t['answer_3'], answer_4=t['answer_4'], correct_answer=t['correct_answer'], level=1)
-            question.save()
-            list.append(t)
-            t = {}
-        cnt += 1
-    tmp = {}
-    tmp['text'] = list
-    f.close()
-    return JsonResponse(data=tmp)
 
 @csrf_exempt
 def play_with_bot(request):
@@ -1013,7 +865,7 @@ def play_with_bot(request):
         tmp['success'] = True
         tmp['game_id'] = game.id
         tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
-        tmp['opponent_avatar'] = convertImgToString(Person.objects.get(user_id=gameInfo.user_id_2).avatar)
+        tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
         tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
         tmp['questions'] = list
         results['message'] = tmp
@@ -1097,18 +949,6 @@ def getFactor(pts):
     return k
 
 @csrf_exempt
-def clear(request):
-    tmp = {}
-    tmp['ok'] = "true"
-    return JsonResponse(data=tmp)
-
-#convert image format to stirng base64 format
-def convertImgToString(path):
-    #file = cStringIO.StringIO(urllib.urlopen(path).read())
-    #stringFormat = base64.b64encode(file.read())
-    return path
-
-@csrf_exempt
 def search_users(request):
     string = request.POST['string']
     unicodedata.normalize('NFKD', string).encode('ascii','ignore')
@@ -1164,9 +1004,11 @@ def notification(from_user, to_user, game_id):
     results = "Very good"
     reg_id = Person.objects.get(user_id=to_user).reg_id
     game_id = str(game_id)
+    person = Person.objects.get(user_id=from_user)
+    message = person.name+" "+ person.last_name+" challenge you!"
     try:
         device = GCMDevice.objects.get(registration_id=reg_id)
-        device.send_message(None, extra={"message": "Give me your parashute!", "title": "Hello, my dear friend!", 'game_id':game_id})
+        device.send_message(None, extra={"message": message, "title": "Lets punish them!", 'game_id':game_id})
     except GCMDevice.DoesNotExist:
         pass
     return results
