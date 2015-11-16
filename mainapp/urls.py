@@ -15,9 +15,6 @@ urlpatterns = [
 
     url(r'^addtopool/', add_to_pool, name='add_to_pool'),
 
-    #url(r'^ranking/', rank_list, name='rank_list'),
-
-    #url(r'^friends/', friend_list, name='friend_list'),
 
     # Android API methods
     url(r'^getmyprofile/', get_my_profile, name='get_my_profile'),
