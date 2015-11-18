@@ -1,6 +1,7 @@
 import datetime
 import random
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 import json
 from django.db.models import Q
@@ -80,6 +81,7 @@ def registration(request):
 def category_list(request):
     results = {}
     error = {}
+    print(request)
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -171,6 +173,7 @@ def get_played_games_list(request):
     list = []
     error = {}
     size = request.POST['size']
+    size = int(size)
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -184,14 +187,14 @@ def get_played_games_list(request):
             games_list['opponent_name'] = opponent.first_name
             games_list['avatar'] = Person.objects.get(user_id=opponent.id).avatar
             games_list['date'] = (i.date).strftime("%Y-%m-%d %H:%M")
-            status = " "
+            state = " "
             if (request.user.id == i.user_id_1 and int(i.point_1) > int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) < int(i.point_2)):
-                status = 1
+                state = 1
             elif (request.user.id == i.user_id_1 and int(i.point_1) < int(i.point_2)) or (request.user.id == i.user_id_2 and int(i.point_1) > int(i.point_2)):
-                status = -1
+                state = -1
             else:
-                status = 0
-            games_list['status'] = status
+                state = 0
+            games_list['state'] = state
             games_list['category_name'] = Categories.objects.get(id=i.category_id).name
             games_list['game_id'] = i.game_id
             list.append(games_list)
@@ -689,6 +692,11 @@ def i_want_to_play_with_friend(request):
     category_id = request.POST['category_id']
     category_id = int(category_id)
     friend_id = int(friend_id)
+    #print(request)
+    print(request.body)
+    print(request.COOKIES)
+    print(category_id)
+    print(friend_id)
     if request.user.is_authenticated() == 0:
         error['success'] = False
         error['text'] = "Please, login!"
@@ -949,6 +957,7 @@ def getFactor(pts):
     return k
 
 @csrf_exempt
+@login_required
 def search_users(request):
     string = request.POST['string']
     unicodedata.normalize('NFKD', string).encode('ascii','ignore')

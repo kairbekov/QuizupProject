@@ -29,12 +29,10 @@ urlpatterns = [
     url(r'^getranking/', get_top_20, name='get_top_20'),
     url(r'^getfriends/', get_friends, name='get_friends'),
 
-    #4 methods for rematch and invitation
+    #3 methods for rematch and invitation
     url(r'^iwanttoplaywithfriend/', i_want_to_play_with_friend, name='i_want_to_play_with_friend'),
     url(r'^whochallengeme/', who_challenge_me, name='who_challenge_me'),
     url(r'^answertochallenge/', answer_to_challenge, name='answer_to_challenge'),
-
-    #url(r'^generate/', generateQuestions(category_id=1), name='generate'),
 
     # Script for reading from file
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
