@@ -74,7 +74,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'EntalappDB',
         'USER': 'root',
-        'PASSWORD': 'QUCqx07GkW',
+        'PASSWORD': '',
         'HOST': 'mysql21760-env-3315080.j.dnr.kz',
         'PORT': '3306',
     }
@@ -93,7 +93,7 @@ DATABASES = {
 PUSH_NOTIFICATIONS_SETTINGS = {
         "GCM_API_KEY": "AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs",
         "GCM_POST_URL": "https://android.googleapis.com/gcm/send",
-
+        "APNS_CERTIFICATE": "C:/Users/abuka/Desktop/cunkey.pem",
 }
 
 #GCM_APIKEY = "AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs"

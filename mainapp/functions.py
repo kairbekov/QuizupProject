@@ -1,6 +1,6 @@
 import random
 from django.contrib.auth.models import User
-from push_notifications.models import GCMDevice
+from push_notifications.models import GCMDevice, APNSDevice
 from mainapp.models import *
 
 # choose 5 random unique questions from all questions
@@ -110,9 +110,14 @@ def notification(from_user, to_user, game_id):
     game_id = str(game_id)
     user = User.objects.get(id=from_user)
     message = user.first_name+" "+ user.last_name+" challenge you!"
+    device = None
     try:
         device = GCMDevice.objects.get(registration_id=reg_id)
-        device.send_message(None, extra={"message": message, "title": "Lets punish them!", 'game_id':game_id})
     except GCMDevice.DoesNotExist:
-        pass
+        try:
+            device = APNSDevice.object.get(registration_id=reg_id)
+        except APNSDevice.DoesNotExist:
+            device = None
+    if device is not None:
+        device.send_message(None, badge=1, extra={"message": message, "title": "Lets punish them!", 'game_id':game_id})
     return results

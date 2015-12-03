@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from mainapp.questionImporting import *
+from mainapp.stats import data_by_time
 from mainapp.views import *
 
 __author__ = 'abuka'
@@ -50,5 +51,9 @@ urlpatterns = [
     # push notification
     url(r'^regid/', reg_id, name='reg_id'),
     url(r'^notification/', notification, name='notification'),
+    url(r'^ios/', ios_test, name='reg_id'),
+
+    #stats
+    url(r'^time/', data_by_time, name='data_by_time'),
 
 ]

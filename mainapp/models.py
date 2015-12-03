@@ -54,7 +54,6 @@ class Game(models.Model):
     user1_answer_id = models.IntegerField()
     user2_answer_id = models.IntegerField()
 
-
 class UserAnswerList(models.Model):
     user_answer_1 = models.IntegerField()
     user_answer_2 = models.IntegerField()

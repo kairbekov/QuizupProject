@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import unicodedata
+from push_notifications.models import APNSDevice
 from mainapp.functions import *
 from mainapp.models import *
 
@@ -571,7 +572,8 @@ def get_friends(request):
             tmp['last_name'] = user.last_name
             tmp['avatar'] = person.avatar
             tmp['total_points'] = person.total_points
-            tmp['user_id'] = person.user_id
+            tmp['city'] = person.city
+            tmp['id'] = person.user_id
             list.append(tmp)
         elif i.user_id_2 == request.user.id:
             user = User.objects.get(id=i.user_id_1)
@@ -580,7 +582,8 @@ def get_friends(request):
             tmp['last_name'] = user.last_name
             tmp['avatar'] = person.avatar
             tmp['total_points'] = person.total_points
-            tmp['user_id'] = person.user_id
+            tmp['city'] = person.city
+            tmp['id'] = person.user_id
             list.append(tmp)
     list = sorted(list, key=lambda i: i['total_points'])
     list.reverse()
@@ -711,7 +714,7 @@ def get_top_20(request):
     position = 1
     for i in Person.objects.order_by('-total_points'):
         tmp = {}
-        if i.id == request.user.id:
+        if i.user_id == request.user.id:
             isYou = True
         else:
             isYou = False
@@ -759,6 +762,7 @@ def play_with_bot(request):
 @csrf_exempt
 @login_required
 def search_users(request):
+    print(request)
     string = request.POST['string']
     unicodedata.normalize('NFKD', string).encode('ascii','ignore')
     strLow = string.lower()
@@ -791,21 +795,25 @@ def search_users(request):
 @csrf_exempt
 def reg_id(request):
     results = {}
-    error = {}
     reg_id = request.POST['reg_id']
-    if request.user.is_authenticated() == 0:
-        error['success'] = False
-        error['text'] = "Please, login!"
-        results['message'] = error
-    else:
-        tmp = {}
-        tmp['success'] = True
-        tmp['text'] = "Good job"
-        person = Person.objects.get(user_id=request.user.id)
-        person.reg_id = reg_id
-        person.save()
-        d = GCMDevice(registration_id=reg_id)
-        d.save()
-        results['message'] = tmp
+    tmp = {}
+    tmp['success'] = True
+    tmp['text'] = "Good job"
+    d = GCMDevice(registration_id=reg_id, user_id=request.user.id)
+    d.save()
+    results['message'] = tmp
+    return JsonResponse(data=results)
+
+@csrf_exempt
+def ios_test(request):
+    results = {}
+    apns_token = request.POST['apns_token']
+    #apns_token = "a469f5bf0fd826f60767e02df3ffec778c0597bf9ddaadb51816a9bfe8c57edb"
+    tmp = {}
+    tmp['success'] = True
+    tmp['text'] = "Good job iOs"
+    device = APNSDevice(registration_id=apns_token, user_id=request.user.id)
+    device.save()
+    results['message'] = tmp
     return JsonResponse(data=results)
 
