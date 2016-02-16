@@ -1,0 +1,3 @@
+django
+xlrd
+django-push-notifications

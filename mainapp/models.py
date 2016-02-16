@@ -80,3 +80,7 @@ class Invitation(models.Model):
     challenger_id = models.IntegerField()
     status = models.IntegerField()
 
+#class Feedback(models.Model):
+    #user_id = models.IntegerField()
+    #text = models.TextField(null=True)
+    #date = models.DateField()

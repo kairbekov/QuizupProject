@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ''
+SECRET_KEY = '&yihzfa%eixz4iydbyf%jzyua25vbch986--4ss1b&-4wzk^ka'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -74,8 +74,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'EntalappDB',
         'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '',
+        'PASSWORD': 'pRU0pkiBYf',
+        'HOST': 'mysql21760-env-3315080.j.dnr.kz',
         'PORT': '3306',
     }
 }
@@ -91,7 +91,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
 PUSH_NOTIFICATIONS_SETTINGS = {
-        "GCM_API_KEY": "",
+        "GCM_API_KEY": "AIzaSyBcgNGFRtyMYt_sfK9MROFE5WqK3-LQsFs",
         "GCM_POST_URL": "https://android.googleapis.com/gcm/send",
         "APNS_CERTIFICATE": "C:/Users/abuka/Desktop/cunkey.pem",
 }

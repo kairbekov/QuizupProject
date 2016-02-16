@@ -4,10 +4,18 @@ from django.views.decorators.csrf import csrf_exempt
 import xlrd
 from mainapp.models import *
 
+@csrf_exempt
+def clear(request):
+    #for i in range(3275,4008,1):
+    #    a = Questions.objects.get(id=i)
+    #    a.delete()
+    tmp = {}
+    tmp['text'] = 'good'
+    return JsonResponse(data=tmp)
 
 @csrf_exempt
 def read_file(request):
-    path = 'C:/Users/Student/Desktop/bio.txt'
+    path = 'C:/Users/abuka/Desktop/entalapp questions(7358)/6.russkiy 3618 part 1.txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()
@@ -45,8 +53,10 @@ def read_file(request):
 
 @csrf_exempt
 def from_file_to_db(request):
+    # don't forget about CATEGORY_ID
+    # don't forget about URL to file
     category = request.POST['category_id']
-    path = 'C:/Users/Student/Desktop/bio.txt'
+    path = 'C:/Users/abuka/Desktop/entalapp questions(7358)/6.russkiy 3618 part 1.txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()

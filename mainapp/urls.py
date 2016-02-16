@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from mainapp.questionImporting import *
-from mainapp.stats import data_by_time
+from mainapp.stats import data_by_time, game_stats, data_by_answers
 from mainapp.views import *
 
 __author__ = 'abuka'
@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^getdata/', get_data_from_file, name='get_data_from_file'),
     url(r'^readfile/', read_file, name='read_file'),
     url(r'^fromfiletodb/', from_file_to_db, name='from_file_to_db'),
+    url(r'^clear/', clear, name='clear'),
 
     # Vk and Fb methods
     url(r'^login_sn/', login_social_network, name='login_social_network'),
@@ -55,5 +56,9 @@ urlpatterns = [
 
     #stats
     url(r'^time/', data_by_time, name='data_by_time'),
+    url(r'^gamestats/', game_stats, name='game_stats'),
+    url(r'^answers/', data_by_answers, name='game_stats'),
+
+    url(r'^test/', test, name='test'),
 
 ]

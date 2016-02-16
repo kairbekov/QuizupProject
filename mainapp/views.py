@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import unicodedata
-from push_notifications.models import APNSDevice
+from push_notifications.models import APNSDevice, GCMDevice
 from mainapp.functions import *
 from mainapp.models import *
 
@@ -60,7 +60,7 @@ def registration(request):
         except User.DoesNotExist:
             user = User.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
             user.save()
-            person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=3000)
+            person = Person(user_id=user.id, vk_id=0, fb_id=0, city="Almaty", avatar="https://help.github.com/assets/images/help/profile/identicon.png", total_points=1000)
             person.save()
             user = authenticate(username=email, password=password)
             login(request,user)
@@ -95,6 +95,7 @@ def get_my_profile(request):
     results = {}
     error = {}
     profile = {}
+    pos = 0
     tmp = User.objects.get(id=request.user.id)
     person = Person.objects.get(user_id=tmp.id)
     profile['success'] = True
@@ -104,6 +105,10 @@ def get_my_profile(request):
     profile['last_name'] = tmp.last_name
     profile['avatar'] = person.avatar
     profile['total_points'] = person.total_points
+    for i in Person.objects.order_by('-total_points'):
+        if i.user_id == request.user.id:
+            profile['position']= pos
+        pos+=1
     results['message'] = profile
     return JsonResponse(data=results)
 
@@ -248,7 +253,7 @@ def add_to_pool(request):
     #    1.2) Esli netu usera v Pool iwem sopernika
     #       a) Esli est` sopernik otpravlyem dannie
     #       b) Esli netu sopernika dobavlyem v Pool
-    rank = Ranking.objects.get(user_id=request.user.id,category_id=category_id).rank
+    rank = Person.objects.get(user_id=request.user.id).total_points
     inPool = 0
     isOpponent = 0
     # check dat user in the pool
@@ -282,7 +287,7 @@ def add_to_pool(request):
                 tmp['game_id'] = gI.game_id
                 tmp['opponent_name'] = User.objects.get(id=opponent).first_name
                 tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
-                tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
+                tmp['opponent_points'] = Person.objects.get(user_id=opponent).total_points
                 tmp['questions'] = questions
                 isOpponent = 1
     if inPool == 0:
@@ -301,7 +306,7 @@ def add_to_pool(request):
                 tmp['game_id'] = gI.game_id
                 tmp['opponent_name'] = User.objects.get(id=opponent).first_name
                 tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
-                tmp['opponent_points'] = Ranking.objects.get(user_id=opponent,category_id=category_id).rank
+                tmp['opponent_points'] = Person.objects.get(user_id=opponent).total_points
                 tmp['questions'] = questions
                 game = Game.objects.get(id=gI.game_id)
                 game.question_id_1 = questions[0]['id']
@@ -374,7 +379,8 @@ def game_end(request):
     gameInfo.save()
     game.save()
     tmp = {}
-    if gameInfo.game_status == 4 and gameInfo.user_id_2 != 1:
+    #if gameInfo.game_status == 4 and gameInfo.user_id_2 != 1:
+    if gameInfo.game_status == 4:
         ranking_update(gameInfo.id)
     try:
         pool = Pool.objects.get(category_id=gameInfo.category_id, user_id=gameInfo.user_id_1, game_info_id=gameInfo.id)
@@ -396,10 +402,14 @@ def game_result(request):
     opponent = k.user_id_1
     tmp['opponent_points'] = k.point_1
     tmp['my_points'] = k.point_2
+    tmp['opponent_pts'] =  k.pts1_change
+    tmp['my_pts'] =  k.pts2_change
     if request.user.id == k.user_id_1:
         opponent = k.user_id_2
         tmp['opponent_points'] = k.point_2
         tmp['my_points'] = k.point_1
+        tmp['opponent_pts'] =  k.pts2_change
+        tmp['my_pts'] =  k.pts1_change
     tmp['date'] = (k.date).strftime("%Y-%m-%d %H:%M")
     tmp['opponent_name'] = User.objects.get(id=opponent).first_name
     tmp['category_name'] = Categories.objects.get(id=k.category_id).name
@@ -449,7 +459,7 @@ def kill_search(request):
         tmp['game_id'] = gI.game_id
         tmp['opponent_name'] = User.objects.get(id=opponent).first_name
         tmp['opponent_avatar'] = Person.objects.get(user_id=opponent).avatar
-        tmp['opponent_points'] = Ranking.objects.get(user_id=opponent, category_id=category_id).rank
+        tmp['opponent_points'] = Person.objects.get(user_id=opponent, category_id=category_id).total_points
         tmp['questions'] = questions
     else:
         g = Game.objects.get(id=gI.game_id)
@@ -488,7 +498,7 @@ def login_social_network(request):
         except Person.DoesNotExist:
             user = User.objects.create_user(username="fb"+id_fb, password="123", first_name=first_name, last_name=last_name)
             user.save()
-            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=3000)
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=1000)
             person.save()
             for i in Categories.objects.all():
                 ranking = Ranking(category_id=i.id, user_id=user.id, rank=1000)
@@ -518,7 +528,7 @@ def login_social_network(request):
         except Person.DoesNotExist:
             user = User.objects.create_user(username="vk"+id_vk, password="123", first_name=first_name, last_name=last_name)
             user.save()
-            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=3000)
+            person = Person(user_id=user.id, vk_id=id_vk, fb_id=id_fb, city=city, avatar=avatar, total_points=1000)
             person.save()
             for i in Categories.objects.all():
                 ranking = Ranking(category_id=i.id, user_id=user.id, rank=1000)
@@ -553,6 +563,7 @@ def get_ranking(request):
         tmp['first_name'] = user.first_name
         tmp['last_name'] = user.last_name
         tmp['avatar'] = i.avatar
+        tmp['user_id'] = i
         list.append(tmp)
     results['message'] = list
     return JsonResponse(data=results)
@@ -625,7 +636,8 @@ def i_want_to_play_with_friend(request):
     game.question_id_4 = list[3]['id']
     game.question_id_5 = list[4]['id']
     game.save()
-    notification(from_user=request.user.id, to_user=friend_id, game_id=gameInfo.game_id)
+    result = notification(from_user=request.user.id, to_user=friend_id, game_id=gameInfo.id)
+    tmp['psuh_result'] = result
     tmp['success'] = True
     tmp['text'] = "You invite your friend"
     results['message'] = tmp
@@ -720,7 +732,7 @@ def get_top_20(request):
             isYou = False
         if len(list) < 20 or (len(list) >= 20 and isYou == True):
             user = User.objects.get(id=i.user_id)
-            tmp['id'] = i.id
+            tmp['id'] = user.id
             tmp['first_name'] = user.first_name
             tmp['last_name'] = user.last_name
             tmp['avatar'] = i.avatar
@@ -738,6 +750,11 @@ def play_with_bot(request):
     results = {}
     list = []
     category_id = request.POST['category_id']
+    friend_id = request.POST['friend_id']
+    friend_id = int(friend_id)
+    if friend_id == 0:
+        friend_id = get_random_bot()
+        print("BOT")
     tmp = {}
     list = generateQuestions(category_id=int(category_id))
     user_answer_list_1 = UserAnswerList(user_answer_1=0, user_answer_2=0, user_answer_3=0, user_answer_4=0, user_answer_5=0, point_1=0, point_2=0, point_3=0, point_4=0, point_5=0)
@@ -748,10 +765,11 @@ def play_with_bot(request):
     user_answer_list_2.save()
     game = Game(question_id_1=list[0]['id'], question_id_2=list[1]['id'], question_id_3=list[2]['id'], question_id_4=list[3]['id'], question_id_5=list[4]['id'], user1_answer_id=user_answer_list_1.id, user2_answer_id=user_answer_list_2.id)
     game.save()
-    gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=1, game_id=game.id, category_id=category_id, game_status=3, point_1=0, point_2=pts_sum, date=datetime.datetime.now() + datetime.timedelta(hours=6), pts1_change=0, pts2_change=0)
+    gameInfo = GameInfo(user_id_1=request.user.id, user_id_2=friend_id, game_id=game.id, category_id=category_id, game_status=3, point_1=0, point_2=pts_sum, date=datetime.datetime.now() + datetime.timedelta(hours=6), pts1_change=0, pts2_change=0)
     gameInfo.save()
     tmp['success'] = True
     tmp['game_id'] = game.id
+    tmp['opponent_id'] = gameInfo.user_id_2
     tmp['opponent_name'] = User.objects.get(id=gameInfo.user_id_2).first_name
     tmp['opponent_avatar'] = Person.objects.get(user_id=gameInfo.user_id_2).avatar
     tmp['opponent_points'] = Person.objects.get(user_id=gameInfo.user_id_2).total_points
@@ -801,6 +819,9 @@ def reg_id(request):
     tmp['text'] = "Good job"
     d = GCMDevice(registration_id=reg_id, user_id=request.user.id)
     d.save()
+    person = Person.objects.get(user_id=request.user.id)
+    person.reg_id = reg_id
+    person.save()
     results['message'] = tmp
     return JsonResponse(data=results)
 
@@ -808,12 +829,32 @@ def reg_id(request):
 def ios_test(request):
     results = {}
     apns_token = request.POST['apns_token']
-    #apns_token = "a469f5bf0fd826f60767e02df3ffec778c0597bf9ddaadb51816a9bfe8c57edb"
+    #apns_token = "24b10ccb7b9338c5fb83e05908588dd3025076feee031c012bc2db01a6c5c0ac"
     tmp = {}
     tmp['success'] = True
     tmp['text'] = "Good job iOs"
     device = APNSDevice(registration_id=apns_token, user_id=request.user.id)
     device.save()
+    person = Person.objects.get(user_id=request.user.id)
+    person.reg_id = apns_token
+    person.save()
+    #device.send_message("KUKU")
     results['message'] = tmp
     return JsonResponse(data=results)
 
+def get_random_bot():
+    bot_user_id = random.randint(2, 6)
+    #bot = User.objects.get(id=bot_user_id)
+    return bot_user_id
+
+@csrf_exempt
+def test(request):
+    results = {}
+    pts1 = request.POST['pts1']
+    pts2 = request.POST['pts2']
+    pts1 = int(pts1)
+    pts2 = int(pts2)
+    tmp = {}
+    tmp['data'] = calc_ranking(pts1, pts2, 1)
+    results['message'] = tmp
+    return JsonResponse(data=results)
