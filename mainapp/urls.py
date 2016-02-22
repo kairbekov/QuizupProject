@@ -59,6 +59,9 @@ urlpatterns = [
     url(r'^gamestats/', game_stats, name='game_stats'),
     url(r'^answers/', data_by_answers, name='game_stats'),
 
+    #feedback
+    url(r'^feedback/', feedback, name='get_feedback'),
+
     url(r'^test/', test, name='test'),
 
 ]

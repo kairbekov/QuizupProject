@@ -2,19 +2,19 @@ from django.db import models
 
 
 class Categories(models.Model):
-    name = models.CharField(max_length=256)
-    subcategory = models.CharField(max_length=256)
+    name = models.CharField(max_length=1024)
+    subcategory = models.CharField(max_length=1024)
 
     def __unicode__(self):
         return self.name
 
 class Questions(models.Model):
     category_id = models.IntegerField()
-    question_text = models.CharField(max_length=256)
-    answer_1 = models.CharField(max_length=256)
-    answer_2 = models.CharField(max_length=256)
-    answer_3 = models.CharField(max_length=256)
-    answer_4 = models.CharField(max_length=256)
+    question_text = models.CharField(max_length=1024)
+    answer_1 = models.CharField(max_length=1024)
+    answer_2 = models.CharField(max_length=1024)
+    answer_3 = models.CharField(max_length=1024)
+    answer_4 = models.CharField(max_length=1024)
     correct_answer = models.IntegerField()
     level = models.IntegerField()
 
@@ -70,17 +70,17 @@ class Person(models.Model):
     user_id = models.IntegerField()
     vk_id = models.BigIntegerField(null=True)
     fb_id = models.BigIntegerField(null=True)
-    city = models.CharField(max_length=256, null=True)
-    avatar = models.CharField(max_length=256, null=True)
+    city = models.CharField(max_length=1024, null=True)
+    avatar = models.CharField(max_length=1024, null=True)
     total_points = models.IntegerField()
-    reg_id = models.CharField(max_length=256, null=True)
+    reg_id = models.CharField(max_length=1024, null=True)
 
 class Invitation(models.Model):
     game_id = models.IntegerField()
     challenger_id = models.IntegerField()
     status = models.IntegerField()
 
-#class Feedback(models.Model):
-    #user_id = models.IntegerField()
-    #text = models.TextField(null=True)
-    #date = models.DateField()
+class Feedback(models.Model):
+    user_id = models.IntegerField()
+    text = models.TextField(null=True)
+    date = models.DateField(null=True)

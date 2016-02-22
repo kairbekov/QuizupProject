@@ -848,6 +848,17 @@ def get_random_bot():
     return bot_user_id
 
 @csrf_exempt
+def feedback(request):
+    results = {}
+    tmp = {}
+    text = request.POST['text']
+    tmp['success'] = True
+    feedback = Feedback(user_id=request.user.id, text=text, date=datetime.datetime.now() + datetime.timedelta(hours=6))
+    feedback.save()
+    results['message'] = tmp
+    return JsonResponse(data=results)
+
+@csrf_exempt
 def test(request):
     results = {}
     pts1 = request.POST['pts1']
