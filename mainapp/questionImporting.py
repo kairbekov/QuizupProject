@@ -6,16 +6,16 @@ from mainapp.models import *
 
 @csrf_exempt
 def clear(request):
-    #for i in range(3275,4008,1):
-    #    a = Questions.objects.get(id=i)
-    #    a.delete()
+    # for i in range(7385,7585,1):
+    #     a = Questions.objects.get(id=i)
+    #     a.delete()
     tmp = {}
     tmp['text'] = 'good'
     return JsonResponse(data=tmp)
 
 @csrf_exempt
 def read_file(request):
-    path = 'C:/Users/abuka/Desktop/entalapp questions(7358)/6.russkiy 3618 part 1.txt'
+    path = 'C:/Users/abuka/Desktop/entalapp questions(7358)/3.biologiya11-20var(250).txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()
@@ -24,6 +24,8 @@ def read_file(request):
     correct = -1
     t = {}
     for i in lines:
+        #i = i.replace("\r","")
+        #i = i.replace("\n","")
         if i[0] == '+':
             t['correct_answer'] = cnt - 1
             correct = cnt
@@ -56,7 +58,7 @@ def from_file_to_db(request):
     # don't forget about CATEGORY_ID
     # don't forget about URL to file
     category = request.POST['category_id']
-    path = 'C:/Users/abuka/Desktop/entalapp questions(7358)/6.russkiy 3618 part 1.txt'
+    path = 'C:/Users/abuka/Desktop/entalapp questions(7358)/6.russkiy 3618 part 2.txt'
     f = codecs.open(path, 'r', encoding='utf8')
     #num_lines = sum(1 for line in f)
     lines = f.readlines()
@@ -65,6 +67,8 @@ def from_file_to_db(request):
     correct = -1
     t = {}
     for i in lines:
+        #i = i.replace("\r","")
+        #i = i.replace("\n","")
         if i[0] == '+':
             t['correct_answer'] = cnt - 1
             correct = cnt

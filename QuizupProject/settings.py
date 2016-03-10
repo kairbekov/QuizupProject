@@ -58,27 +58,27 @@ WSGI_APPLICATION = 'QuizupProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'postgres',
-#         'USER': 'webadmin',
-#         'PASSWORD': 'zpASTMqAhc',
-#         'HOST': 'postgres21735-env-9988956.j.dnr.kz',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'EntalappDB',
-        'USER': 'root',
-        'PASSWORD': 'pRU0pkiBYf',
-        'HOST': 'mysql21760-env-3315080.j.dnr.kz',
-        'PORT': '3306',
+        'USER': 'abuka',
+        'PASSWORD': 'Kbtu2012',
+        'HOST': '185.22.67.17',
+        'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'EntalappDB',
+#         'USER': 'root',
+#         'PASSWORD': 'pRU0pkiBYf',
+#         'HOST': 'mysql21760-env-3315080.j.dnr.kz',
+#         'PORT': '3306',
+#     }
+# }
 
 # DATABASES = {
 #     'default': {

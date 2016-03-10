@@ -116,14 +116,14 @@ def notification(from_user, to_user, game_id):
     device = None
     try:
         device = GCMDevice.objects.get(registration_id=reg_id)
+        device.send_message(None, extra={"message": "Challenge!", "title": "Lets punish them!", 'game_id':game_id, 'category_name':"Let's go!"})
     except GCMDevice.DoesNotExist:
         try:
             device = APNSDevice.objects.get(registration_id=reg_id)
+            device.send_message("Challenge", extra={"message": "Challenge!", "title": "Lets punish them!", 'game_id':game_id, 'category_name':"Let's go!"})
         except APNSDevice.DoesNotExist:
             device = None
-    if device is not None:
-        device.send_message(None, extra={"message": "Challenge!", "title": "Lets punish them!", 'game_id':game_id, 'category_name':"Let's go!"})
-    else:
+    if device is None:
         results = "Very bad"
     return results
 
