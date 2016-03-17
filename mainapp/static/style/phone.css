@@ -1,0 +1,12 @@
+.phone {
+    position: relative;
+    margin-top: 15px;
+}
+
+.phone .iphone5-screen {
+    left: 8.2%;
+    overflow: none;
+    position: absolute;
+    right: 8.2%;
+    top: 14.5%;
+}

@@ -833,15 +833,19 @@ def ios_test(request):
     apns_token = request.POST['apns_token']
     tmp = {}
     tmp['success'] = True
-    tmp['text'] = "Good job iOs"
-    # person = Person.objects.get(user_id=request.user.id)
-    # person.reg_id = apns_token
-    # person.save()
-    # device = APNSDevice(registration_id=apns_token, user_id=request.user.id)
-    # device.save()
-    #apns_token = "24b10ccb7b9338c5fb83e05908588dd3025076feee031c012bc2db01a6c5c0ac"
-    device = APNSDevice.objects.get(registration_id=apns_token)
-    device.send_message("Push ENT", extra={"message": "Challenge!", "title": "Lets punish them!", 'game_id':1, 'category_name':"Let's go!"})
+    tmp['text'] = "Error"
+    person = Person.objects.get(user_id=request.user.id)
+    person.reg_id = apns_token
+    person.save()
+    try:
+        device = APNSDevice.object.get(registration_id=apns_token, user_id=request.user.id)
+    except APNSDevice.DoesNotExist:
+        device = APNSDevice(registration_id=apns_token, user_id=request.user.id)
+        device.save()
+        tmp['text'] = "Success ios"
+    # apns_token = "24b10ccb7b9338c5fb83e05908588dd3025076feee031c012bc2db01a6c5c0ac"
+    # device = APNSDevice.objects.get(registration_id=apns_token)
+    # device.send_message("Push ENT", extra={"message": "Challenge!", "title": "Lets punish them!", 'game_id':1, 'category_name':"Let's go!"})
     results['message'] = tmp
     return JsonResponse(data=results)
 
@@ -875,4 +879,4 @@ def test(request):
 
 
 def home_view(request):
-        return render(request, '../static/../templates/first_page.html')
+        return render(request, '../static/../templates/index.html')
