@@ -838,7 +838,8 @@ def ios_test(request):
     person.reg_id = apns_token
     person.save()
     try:
-        device = APNSDevice.object.get(registration_id=apns_token, user_id=request.user.id)
+        device = APNSDevice.objects.get(registration_id=apns_token, user_id=request.user.id)
+        tmp['text'] = "Already exist"
     except APNSDevice.DoesNotExist:
         device = APNSDevice(registration_id=apns_token, user_id=request.user.id)
         device.save()
