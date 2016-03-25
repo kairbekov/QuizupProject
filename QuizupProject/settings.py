@@ -24,7 +24,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'entalapp.kz', '185.22.67.17', 'www.entalapp.kz']
 
 
 # Application definition
