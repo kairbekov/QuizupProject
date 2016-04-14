@@ -35,22 +35,28 @@
     <script src="{% static 'fullpage/vendors/jquery.easings.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'fullpage/jquery.fullPage.js' %}"></script>
     <script type="text/javascript">
+
       $(document).ready(function() {
-          $('#fullpage').fullpage({
-        sectionsColor : ['#fcfcfc', '#fcfcfc', '#fcfcfc'],
-            anchors:['firstPage', 'secondPage', 'thirdPage']
+
+            $('#fullpage').fullpage({
+              sectionsColor : ['#fcfcfc', '#fcfcfc', '#fcfcfc'],
+              anchors:['firstPage', 'secondPage', 'thirdPage']
+            });
+
+      });
+      $(function() {
+          $(window).resize(function(){
+              var width = $(window).width();
+              if(width < 768) {
+
+                  $.fn.fullpage.setAutoScrolling(false);
+              }
+              else {
+
+                  $.fn.fullpage.setAutoScrolling(true);
+              }
           });
       });
-      var isPhoneDevice = "ontouchstart" in document.documentElement; 
-      $(document).ready(function() {
-                if(isPhoneDevice){
-                    //mobile
-                }
-                else{
-                    //desktop               
-                    $.fn.fullpage();
-                }
-              });
     </script>
 
   </head>
@@ -106,7 +112,28 @@
                   <h1>ENTalapp</h1>        
                   <h3>Подготовка к ЕНТ - теперь увлекательно и просто!</h3>
               </hgroup>
-              <a href="#secondPage" class="btn btn-hero btn-lg" role="button">Скачать</a>
+                    <div class="download">
+                      <div class="col-sm-0 col-md-2">
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="https://play.google.com/store/apps/details?id=com.ent.saken2316.entalapp&hl=ru" class="btn btn-download">
+                            <i class="fa fa-android"></i>
+                            <span class="small">Скачать из</span>
+                            <span class="big">Play Market</span>
+                          </a>
+                        </p>
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="#" class="btn btn-download">
+                            <i class="fa fa-apple"></i>
+                            <span class="small">Скоро на</span>
+                            <span class="big">App Store</span>
+                          </a>
+                        </p>
+                      </div>
+                    </div>
             </div>
           </div>
           <div class="item slides">
@@ -118,7 +145,28 @@
                   <h1>Удобно</h1>        
                   <h3>Готовьтесь к экзаменам в любом месте в любое время</h3>
               </hgroup>       
-              <a href="#secondPage" class="btn btn-hero btn-lg" role="button">Скачать</a>
+                    <div class="download">
+                      <div class="col-sm-0 col-md-2">
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="https://play.google.com/store/apps/details?id=com.ent.saken2316.entalapp&hl=ru" class="btn btn-download">
+                            <i class="fa fa-android"></i>
+                            <span class="small">Скачать из</span>
+                            <span class="big">Play Market</span>
+                          </a>
+                        </p>
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="#" class="btn btn-download">
+                            <i class="fa fa-apple"></i>
+                            <span class="small">Скоро на</span>
+                            <span class="big">App Store</span>
+                          </a>
+                        </p>
+                      </div>
+                    </div>
             </div>
           </div>
           <div class="item slides">
@@ -130,7 +178,28 @@
                   <h1>Весело</h1>        
                   <h3>Соревнуйтесь с друзьями и другими игроками</h3>
               </hgroup>
-              <a href="#secondPage" class="btn btn-hero btn-lg" role="button">Скачать</a>
+                    <div class="download">
+                      <div class="col-sm-0 col-md-2">
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="https://play.google.com/store/apps/details?id=com.ent.saken2316.entalapp&hl=ru" class="btn btn-download">
+                            <i class="fa fa-android"></i>
+                            <span class="small">Скачать из</span>
+                            <span class="big">Play Market</span>
+                          </a>
+                        </p>
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="#" class="btn btn-download">
+                            <i class="fa fa-apple"></i>
+                            <span class="small">Скоро на</span>
+                            <span class="big">App Store</span>
+                          </a>
+                        </p>
+                      </div>
+                    </div>
             </div>
           </div>
           <div class="item slides">
@@ -142,7 +211,28 @@
                   <h1>Эффективно</h1>        
                   <h3>Оцените свои знания с высокой точностью, благодаря системе умного рейтинга</h3>
               </hgroup>
-              <a href="#secondPage" class="btn btn-hero btn-lg" role="button">Скачать</a>
+                    <div class="download">
+                      <div class="col-sm-0 col-md-2">
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="https://play.google.com/store/apps/details?id=com.ent.saken2316.entalapp&hl=ru" class="btn btn-download">
+                            <i class="fa fa-android"></i>
+                            <span class="small">Скачать из</span>
+                            <span class="big">Play Market</span>
+                          </a>
+                        </p>
+                      </div>
+                      <div class="col-sm-6 col-md-4">
+                        <p>
+                          <a href="#" class="btn btn-download">
+                            <i class="fa fa-apple"></i>
+                            <span class="small">Скоро на</span>
+                            <span class="big">App Store</span>
+                          </a>
+                        </p>
+                      </div>
+                    </div>
             </div>
           </div>
         </div> 
@@ -182,15 +272,25 @@
 
               </div>
               <div class="col-sm-8 col-xs-12">
-                <div class="phone-text">    
-                    <h2>Готовься и играй с друзьями одновременно!</h2>
+                <div class="phone-text">
+                    <h2>А какие у вас возможности?</h2>
+                     <br/>
+                     <h4>
+                       <ul>
+                         <li>Найди своего друга и посоревнуйся с ним!</li><br/>
+                         <li>Играй и готовься одновременно - ты сдашь любой экзамен!</li><br/>
+                         <li>Рейтинг поможет тебе улучшить свой уровень знания</li><br/>
+                         <li>Играй со случайным соперником</li><br/>
+                         <li>Делись своим достижением в соц сетях</li><br/>
+                       </ul>
+                     </h4>
 
                     <div class="download">
                       <div class="col-sm-6">
                         <p>
                           <a href="https://play.google.com/store/apps/details?id=com.ent.saken2316.entalapp&hl=ru" class="btn btn-download">
-                            <i class="fa fa-android"></i> 
-                            <span class="small">Скачать из</span> 
+                            <i class="fa fa-android"></i>
+                            <span class="small">Скачать из</span>
                             <span class="big">Play Market</span>
                           </a>
                         </p>
@@ -198,8 +298,8 @@
                       <div class="col-sm-6">
                         <p>
                           <a href="#" class="btn btn-download">
-                            <i class="fa fa-apple"></i> 
-                            <span class="small">Скачать из</span> 
+                            <i class="fa fa-apple"></i>
+                            <span class="small">Скоро на</span>
                             <span class="big">App Store</span>
                           </a>
                         </p>
@@ -227,8 +327,11 @@
             <div class="row">
                 <div class="col-md-8">
                     <div class="well well-sm">
-                        <form>
                         <div class="row">
+
+                            {% block content %}
+                                <form action="{% url 'mainapp.views.site_message' %}" method="post">
+                                {% csrf_token %}
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="name">
@@ -236,7 +339,7 @@
                                     <div class="input-group">
                                         <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span>
                                         </span>
-                                        <input type="text" class="form-control" id="name" placeholder="Enter name" required="required" />
+                                        <input type="text" class="form-control" id="name" placeholder="Enter name" required="required" name="username"/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -245,7 +348,7 @@
                                     <div class="input-group">
                                         <span class="input-group-addon"><span class="glyphicon glyphicon-envelope"></span>
                                         </span>
-                                        <input type="email" class="form-control" id="email" placeholder="Введите email" required="required" />
+                                        <input type="email" class="form-control" id="email" placeholder="Введите email" required="required" name="email"/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -254,7 +357,7 @@
                                     <div class="input-group">
                                         <span class="input-group-addon"><span class="glyphicon glyphicon-chevron-down"></span>
                                         </span>
-                                        <select id="subject" name="subject" class="form-control" required="required">
+                                        <select id="subject" name="topic" class="form-control" required="required">
                                             <option value="na" selected="">Выберите из списка:</option>
                                             <option value="service">Сотрудничество</option>
                                             <option value="suggestions">Пожелания</option>
@@ -275,8 +378,11 @@
                                 <button type="submit" class="btn btn-primary pull-right" id="btnContactUs">
                                     Отправить отзыв</button>
                             </div>
+
+                            </form>
+                            {% endblock %}
+
                         </div>
-                        </form>
                     </div>
                 </div>
                 <div class="col-md-4">

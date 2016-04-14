@@ -3,8 +3,7 @@ from django.db import models
 
 class Categories(models.Model):
     name = models.CharField(max_length=1024)
-    subcategory = models.CharField(max_length=1024)
-
+    language = models.CharField(max_length=1024)
     def __unicode__(self):
         return self.name
 
@@ -17,6 +16,7 @@ class Questions(models.Model):
     answer_4 = models.CharField(max_length=1024)
     correct_answer = models.IntegerField()
     level = models.IntegerField()
+    language = models.CharField(max_length=128)
 
 class Pool(models.Model):
     category_id = models.IntegerField()
@@ -83,4 +83,12 @@ class Invitation(models.Model):
 class Feedback(models.Model):
     user_id = models.IntegerField()
     text = models.TextField(null=True)
+    date = models.DateField(null=True)
+
+
+class SiteMessages(models.Model):
+    username = models.CharField(max_length=256)
+    email = models.CharField(max_length=256)
+    topic = models.CharField(max_length=256)
+    message = models.TextField()
     date = models.DateField(null=True)

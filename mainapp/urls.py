@@ -62,6 +62,12 @@ urlpatterns = [
     #feedback
     url(r'^feedback/', feedback, name='get_feedback'),
 
+    # forgot password
+    url(r'^forgotpwd/', forgot_password, name='forgot_password'),
+
+    # feedbacks from site
+    url(r'^sitemessage/', site_message, name='site_message'),
+
     url(r'^test/', test, name='test'),
 
 ]

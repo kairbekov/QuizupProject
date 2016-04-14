@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy
 from mainapp.models import *
 
 class CategoriesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'subcategory')
+    list_display = ('id', 'name', 'language')
 
 class QuestionsAdmin(admin.ModelAdmin):
     list_display = ('category_id', 'question_text', 'answer_1', 'answer_2', 'answer_3', 'answer_4', 'correct_answer', 'level')
@@ -33,6 +33,9 @@ class PersonAdmin(admin.ModelAdmin):
 class InvitationAdmin(admin.ModelAdmin):
     list_display = ('id', 'game_id', 'challenger_id', 'status')
 
+class SiteMessagesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'username', 'email', 'topic', 'message', 'date')
+
 
 admin.site.register(Categories, CategoriesAdmin)
 admin.site.register(Questions, QuestionsAdmin)
@@ -44,3 +47,5 @@ admin.site.register(Game, GameAdmin)
 admin.site.register(UserAnswerList, UserAnswerListAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Invitation, InvitationAdmin)
+admin.site.register(SiteMessages,SiteMessagesAdmin)
+

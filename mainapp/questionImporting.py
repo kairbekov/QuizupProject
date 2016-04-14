@@ -1,8 +1,8 @@
 import codecs
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import xlrd
 from mainapp.models import *
+import xlrd
 
 @csrf_exempt
 def clear(request):
@@ -99,6 +99,160 @@ def from_file_to_db(request):
     f.close()
     return JsonResponse(data=tmp)
 
+# @csrf_exempt
+# def get_data_from_file(request):
+#     results = {}
+#     error = {}
+#     list = []
+#     if request.user.is_authenticated() == 0:
+#         error['success'] = False
+#         error['text'] = "Please, login!"
+#         results['message'] = error
+#     else:
+#         #file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.xls')
+#         rb = xlrd.open_workbook('C:/Users/Abuka/Desktop/Kniga2.xlsx')
+#         #rb = xlrd.open_workbook('C:/Users/abuka/Desktop/test.xls',formatting_info=True)
+#         sheet = rb.sheet_by_index(0)
+#         for rownum in range(1,1428):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#                 list.append(row)
+#             question = Questions(category_id=7, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(1428,3880):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=3, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(3880,6504):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=2, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(6504,8955):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=5, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(8955, 9402):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=8, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(9402, 10692):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=4, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(10692, 12688):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=6, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#         for rownum in range(12688, 15823):
+#             row = sheet.row_values(rownum)
+#             last = row[7]
+#             correct = 0
+#             if row[9]=='A':
+#                 correct = 1
+#             elif row[9]=='B':
+#                 correct = 2
+#             elif row[9]=='C':
+#                 correct = 3
+#             elif row[9]=='D':
+#                 correct = 4
+#             elif row[9] == 'E':
+#                 last = row[8]
+#                 correct = 4
+#             question = Questions(category_id=1, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='rus')
+#             question.save()
+#     results['message'] = list
+#     return JsonResponse(data=results)
+
 @csrf_exempt
 def get_data_from_file(request):
     results = {}
@@ -110,13 +264,145 @@ def get_data_from_file(request):
         results['message'] = error
     else:
         #file_path = os.path.join(r'C:/Users/Student/Desktop', 'test.xls')
-        rb = xlrd.open_workbook('C:/Users/Student/Desktop/test.xls',formatting_info=True)
+        rb = xlrd.open_workbook('C:/Users/Abuka/Desktop/Kniga1.xlsx')
         #rb = xlrd.open_workbook('C:/Users/abuka/Desktop/test.xls',formatting_info=True)
         sheet = rb.sheet_by_index(0)
-        for rownum in range(sheet.nrows):
-            row = sheet.row_values(rownum)
-            question = Questions(category_id=row[0], question_text=row[1], answer_1=row[2], answer_2=row[3], answer_3=row[4], answer_4=row[5], correct_answer=row[6], level=row[7])
-            question.save()
-            list.append(row)
+        # for rownum in range(1,3018):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #         list.append(row)
+        #     question = Questions(category_id=1, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(3018,4182):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=3, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(4182,5353):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=2, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(5353,6167):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=5, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(6167, 7737):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=8, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(7737, 9330):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=4, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(9331, 10721):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=7, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
+        # for rownum in range(10721, 12481):
+        #     row = sheet.row_values(rownum)
+        #     last = row[7]
+        #     correct = 0
+        #     if row[9]=='A':
+        #         correct = 1
+        #     elif row[9]=='B':
+        #         correct = 2
+        #     elif row[9]=='C':
+        #         correct = 3
+        #     elif row[9]=='D':
+        #         correct = 4
+        #     elif row[9] == 'E':
+        #         last = row[8]
+        #         correct = 4
+        #     question = Questions(category_id=6, question_text=row[1], answer_1=row[4], answer_2=row[5], answer_3=row[6], answer_4=last, correct_answer=correct, level=0, language='kaz')
+        #     question.save()
     results['message'] = list
     return JsonResponse(data=results)

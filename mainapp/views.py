@@ -4,10 +4,12 @@ from django.contrib.auth.decorators import login_required
 import json
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 import unicodedata
 from push_notifications.models import APNSDevice, GCMDevice
+
+from mainapp.forms import SiteMessagesForm
 from mainapp.functions import *
 from mainapp.models import *
 
@@ -85,7 +87,7 @@ def category_list(request):
         tmp = {}
         tmp['id'] = i.id
         tmp['category'] = i.name
-        tmp['subcategory'] = i.subcategory
+        tmp['language'] = i.language
         categroy_list.append(tmp)
     results['message'] = categroy_list
     return JsonResponse(data=results)
@@ -128,7 +130,7 @@ def get_my_category_list(request):
         k = Categories.objects.get(id=i)
         tmp['id'] = k.id
         tmp['name'] = k.name
-        tmp['subcategory'] = k.subcategory
+        tmp['language'] = k.language
         category_list.append(tmp)
     results['message'] = category_list
     return JsonResponse(data=results)
@@ -247,6 +249,7 @@ def add_to_pool(request):
     results = {}
     tmp = {}
     category_id = request.POST['category_id']
+    #lang = request.POST['lang']
     category_id = int(category_id)
     # 1) Proverim esli li user v Pool
     #    1.1) Esli est` proverim nawelsya li sopernik
@@ -869,15 +872,61 @@ def feedback(request):
 @csrf_exempt
 def test(request):
     results = {}
-    pts1 = request.POST['pts1']
-    pts2 = request.POST['pts2']
-    pts1 = int(pts1)
-    pts2 = int(pts2)
+    for j in Categories.objects.all():
+        for i in User.objects.all():
+            try:
+                ranking = Ranking.objects.get(category_id=j.id, user_id=i.id)
+            except Ranking.DoesNotExist:
+                ranking = Ranking(category_id=j.id, user_id=i.id, rank=1000)
+                ranking.save()
     tmp = {}
-    tmp['data'] = calc_ranking(pts1, pts2, 1)
+    tmp['data'] = "ok"
     results['message'] = tmp
     return JsonResponse(data=results)
 
 
 def home_view(request):
         return render(request, '../static/../templates/index.html')
+
+@csrf_exempt
+def site_message(request):
+    form = SiteMessagesForm()
+    if request.method == 'POST':
+        form = SiteMessagesForm(data=request.POST)
+        if form.is_valid():
+            #Accessing the data in cleaned_data
+            form.save()
+            name = form.cleaned_data['username']
+            email = form.cleaned_data['email']
+            subejct = form.cleaned_data['topic']
+            message = form.cleaned_data['message']
+            #print "My Number %s" % name +email+subejct+message #watch your command line
+            #resp = StreamingHttpResponse(stream.streamx(name))
+            return redirect('/')
+
+    #If not post provide the form here in the template :
+    print('Kuku')
+    return render(request, '../static/../templates/index.html', {
+        'form': form,
+    })
+    return 0
+
+@csrf_exempt
+def forgot_password(request):
+    results = {}
+    tmp = {}
+    email = request.POST['email']
+    tmp['success'] = True
+    tmp['text'] = "Check your e-mail"
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        tmp['success'] = False
+        tmp['text'] = "Email doesn't exist"
+    results['message'] = tmp
+    return JsonResponse(data=results)
+
+@csrf_exempt
+def change_password(request):
+    return 0
+
